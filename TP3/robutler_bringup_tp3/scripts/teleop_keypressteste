@@ -5,8 +5,10 @@ from geometry_msgs.msg import Twist
 import sys
 import select
 import os
-from time import sleep
 from pynput import keyboard
+import multiprocessing
+
+
 
 if os.name == 'nt':
     import msvcrt
@@ -36,8 +38,7 @@ W to move forwards
 S to full stop
 X to Reverse
 A or D to turn LEFT/RIGHT
-
-There are 5 levels of velocity both for linear and angular.
+T for TURBOOOOOOOOOOO
 
 CTRL-C to exit
 """
@@ -45,10 +46,6 @@ CTRL-C to exit
 e = """
 Communications Failed
 """
-
-
-
-actived = []
 
 
 
@@ -124,20 +121,25 @@ def checkAngularLimitVelocity(vel):
 
     return vel
 
+def on_press_queue(queue):  
+    def on_press(key):
+        try:
+            queue.put(key.char)
+        except AttributeError:
+            pass
+    return on_press
 
-def on_press(key):
-    try:
-        if key not in actived:
-            actived.append(key)
-        print("qis ", actived)
-        if key.char == 'q':
-            return False
-    except AttributeError:
-        pass
-def on_release(key):
-    if key in actived:
-        actived.remove(key) 
-    print("REALIZADO       ", key)
+def on_release_queue(queue):
+    def on_release(key):
+        try:
+            queue.put('n'+key.char)
+        except AttributeError:
+            pass
+    return on_release
+
+def keyboard_listener(queue):
+    with keyboard.Listener(on_press=on_press_queue(queue),on_release=on_release_queue(queue)) as listener:
+        listener.join()
 
 
 
@@ -160,11 +162,57 @@ if __name__ == "__main__":
     try:
         print(msg)
         while not rospy.is_shutdown():
+            queue = multiprocessing.Manager().Queue()
+            
+            process = multiprocessing.Process(target=keyboard_listener,args=(queue,))
+            process.start()
+            while True:
+                res = queue.get()
+                print('AQUI           ',res)
+                if res == 'w':
+                    control_linear_vel = 1.0
+                elif res == 'nw':
+                    control_linear_vel = 0.0
+                elif res == 's':
+                    control_linear_vel = -1.0
+                elif res == 'ns':
+                    control_linear_vel = 0.0
+                elif res == 'd':
+                    control_angular_vel = -1.0
+                elif res == 'nd':
+                    control_angular_vel = 0.0
+                elif res == 'a':
+                    control_angular_vel = 1.0
+                elif res == 'na':
+                    control_angular_vel = 0.0
+                elif res == 'q':
+                    break
+                    
+                else:
+                    pass
+                if status == 20:
+                    print(msg)
+                    status = 0
 
+                twist = Twist()
+                print('ANGULAR           ',control_angular_vel)
+                print('LINEAR         ',control_linear_vel)
+                twist.linear.x = control_linear_vel
+                twist.linear.y = 0.0
+                twist.linear.z = 0.0
+                
+                twist.angular.x = 0.0
+                twist.angular.y = 0.0
+                twist.angular.z = control_angular_vel
+    
+                pub.publish(twist)
 
+            process.terminate()
+            print('terminatings')
+            break
 
-            with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
-                listener.join()
+                    
+                
                         
             #if keyboard.is_pressed("w") and keyboard.is_pressed("d"):
             #    target_angular_vel = 0.5
@@ -204,23 +252,7 @@ if __name__ == "__main__":
                 #if (key == '\x03'):
                 #break
 
-            if status == 20:
-                print(msg)
-                status = 0
 
-            twist = Twist()
-
-            control_linear_vel = makeSimpleProfile(control_linear_vel, target_linear_vel, (LIN_VEL_STEP_SIZE/2.0))
-            twist.linear.x = control_linear_vel
-            twist.linear.y = 0.0
-            twist.linear.z = 0.0
-
-            control_angular_vel = makeSimpleProfile(control_angular_vel, target_angular_vel, (ANG_VEL_STEP_SIZE/2.0))
-            twist.angular.x = 0.0
-            twist.angular.y = 0.0
-            twist.angular.z = control_angular_vel
-
-            pub.publish(twist)
 
     except ValueError:
         print(e)
