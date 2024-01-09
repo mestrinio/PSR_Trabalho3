@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from datetime import datetime
 import rospy
 from functools import partial
 from interactive_markers.interactive_marker_server import *
@@ -14,12 +15,22 @@ from rospkg import RosPack
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 import cv2
+from visualization_msgs.msg import Marker
+
 
 server = None
 marker_pos = 1
 menu_handler = MenuHandler()
 h_first_entry = 0
+h_second_entry = 0 ###
 h_mode_last = 0
+
+mission_text_markers = {
+    'kitchen': {'marker': None, 'text_marker': None},
+    'bedroom': {'marker': None, 'text_marker': None},
+}
+
+current_mission_marker = None
 
 def enableCb(feedback):
     handle = feedback.menu_entry_id
@@ -98,14 +109,57 @@ def makeMenuMarker(name):
 
     server.insert(int_marker)
 
+def makeTextMarker(name, text, frame_id="base_link"):
+    int_marker = InteractiveMarker()
+    int_marker.header.frame_id = frame_id
+    int_marker.name = name
+
+    text_marker = Marker()
+    text_marker.type = Marker.TEXT_VIEW_FACING
+    text_marker.text = text
+    text_marker.pose.position.z = 1.5  # Adjust the height of the text
+    text_marker.scale.z = 0.2
+    text_marker.color.r = 0.0
+    text_marker.color.g = 0.0
+    text_marker.color.b = 0.0
+    text_marker.color.a = 1.0
+
+    control = InteractiveMarkerControl()
+    control.markers.append(text_marker)
+    control.always_visible = True
+    int_marker.controls.append(control)
+
+    return int_marker, text_marker
+
+
 
 def deepCb(feedback):
     rospy.loginfo("The deep sub-menu has been found.")
 
 
+def updateMissionDescription(mission_name, mission_location):
+    global current_mission_marker
+
+    # Remove the current mission text marker if exists
+    if current_mission_marker:
+        server.erase(current_mission_marker.name)
+        server.applyChanges()
+
+    # Create a new text marker for the mission description
+    mission_text_marker, _ = makeTextMarker("text_mission_description", mission_name)
+    mission_text_marker.pose.position.z = 1  # Adjust the height of the text
+
+    # Insert the new mission text marker
+    server.insert(mission_text_marker)
+    server.applyChanges()
+
+    # Update the global variable
+    current_mission_marker = mission_text_marker
+
 
 class CameraListener:
-    def __init__(self):
+    def __init__(self,location):
+        self.location=location
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/camera/rgb/top_image_raw", Image, self.image_callback)
         self.image_saved = False
@@ -117,8 +171,14 @@ class CameraListener:
                 package_name = "robutler_bringup_tp3"
                 rospack = RosPack()
                 package_path = rospack.get_path(package_name)
-                directory_path = os.path.join(package_path, "photos")
-                file_name = "Tentativa15.jpg"
+                directory_path = os.path.join(package_path, "photos")                            
+                
+                timestamp = datetime.now()
+                
+                # Format timestamp
+                timestamp_formatted = timestamp.strftime("%d-%m-%Y_%H-%M-%S")            
+                
+                file_name = f"Photo_of_{self.location}_{timestamp_formatted}.jpg"
                 os.chdir(directory_path)
                 cv2.imwrite(file_name, cv_image)
                 rospy.loginfo("Image saved successfully as: " + file_name + ".")
@@ -128,8 +188,9 @@ class CameraListener:
                 rospy.logerr("Error processing image: {}".format(e))
 
 
-def takeAPicture(feedback, x, y, z, R, P, Y, location, goal_publisher,camera_listener):
+def takeAPicture(feedback, x, y, z, R, P, Y, location, goal_publisher, camera_listener):
     print('First, moving to ' + location)
+    updateMissionDescription("Moving to the {} to take a picture".format(location), mission_location=location)
     p = Pose()
     p.position = Point(x=x, y=y, z=z)
     q = quaternion_from_euler(R, P, Y)  # From euler angles (rpy) to quaternion
@@ -150,10 +211,11 @@ def takeAPicture(feedback, x, y, z, R, P, Y, location, goal_publisher,camera_lis
         # TODO
         return
 
+    #UpdateMissionDescription("Mission complete!! Uff")
     print('move base completed goal with result ' + str(result_msg))
     
     # Initialize CameraListener within the takeAPicture function
-    camera_listener_instance = camera_listener()
+    camera_listener_instance = camera_listener(location)
 
     # Wait for some time to ensure that the CameraListener has captured the image
     rospy.sleep(5)
@@ -167,6 +229,7 @@ def takeAPicture(feedback, x, y, z, R, P, Y, location, goal_publisher,camera_lis
 
 def moveTo(feedback, x, y, z, R, P, Y, location, goal_publisher):
     print('Called moving to ' + location)
+    updateMissionDescription("Moving to the {}".format(location), mission_location=location)
     p = Pose()
     p.position = Point(x=x, y=y, z=z)
     q = quaternion_from_euler(R, P, Y)  # From euler angles (rpy) to quaternion
@@ -187,6 +250,7 @@ def moveTo(feedback, x, y, z, R, P, Y, location, goal_publisher):
         # TODO
         return
 
+    #updateMissionDescription("Mission complete!! Uff")
     print('move base completed goal with result ' + str(result_msg))
 
 
@@ -206,7 +270,12 @@ def main():
 
     global h_first_entry, h_mode_last
     h_first_entry = menu_handler.insert("Move to")
-    
+    h_second_entry = menu_handler.insert("Take a Picture")
+
+    mission_text_marker, mission_text_marker_marker = makeTextMarker("text_mission_description", "Mission: ")
+    mission_text_markers['mission_description'] = {'marker': mission_text_marker, 'text_marker': mission_text_marker_marker}
+    server.insert(mission_text_marker)
+
 
     entry = menu_handler.insert("kitchen", parent=h_first_entry,
                                 callback=partial(moveTo,
@@ -215,6 +284,9 @@ def main():
                                                  location='kitchen',
                                                  goal_publisher=goal_publisher))
 
+
+
+
     entry = menu_handler.insert("bedroom", parent=h_first_entry,
                                 callback=partial(moveTo,
                                                  x=-4.409525, y=-0.182006, z=0,
@@ -222,14 +294,43 @@ def main():
                                                  location='bedroom',
                                                  goal_publisher=goal_publisher))
 
-    entry = menu_handler.insert("foto_cozinha", parent=h_first_entry,
+
+    entry = menu_handler.insert("play_room", parent=h_first_entry,
+                                callback=partial(moveTo,
+                                                 x=-4.962322, y=-2.987908, z=0,
+                                                 R=-0.000007, P=0.003169, Y=-2.768683,
+                                                 location='play_room',
+                                                 goal_publisher=goal_publisher))
+
+    entry = menu_handler.insert("kitchen_photo", parent=h_second_entry,
                                 callback=partial(takeAPicture,
-                                                 x=6.568593, y=-1.788789, z=0,
-                                                 R=0, P=0, Y=-1.504141,
+                                                 x=0.865270, y=1.629331, z=0,
+                                                 R=0, P=0.003169, Y=0.760267,
                                                  location='kitchen',
                                                  goal_publisher=goal_publisher,
                                                  camera_listener=CameraListener))
-
+  
+    entry = menu_handler.insert("gym_photo", parent=h_second_entry,
+                                callback=partial(takeAPicture,
+                                                 x=1.544719, y=0.655930, z=0,
+                                                 R=0, P=0.003175, Y=1.103783,
+                                                 location='gym',
+                                                 goal_publisher=goal_publisher,
+                                                 camera_listener=CameraListener))
+    entry = menu_handler.insert("bedroom_photo", parent=h_second_entry,
+                                callback=partial(takeAPicture,
+                                                 x=-3.003071, y=-1.536944, z=0,
+                                                 R=0, P=0.003176, Y=2.376887,
+                                                 location='bedroom',
+                                                 goal_publisher=goal_publisher,
+                                                 camera_listener=CameraListener))
+    entry = menu_handler.insert("living_room_photo", parent=h_second_entry,
+                                callback=partial(takeAPicture,
+                                                 x=-3.538686, y=1.386727, z=0,
+                                                 R=0, P=0.003170, Y=-2.197480,
+                                                 location='living_room',
+                                                 goal_publisher=goal_publisher,
+                                                 camera_listener=CameraListener))
     makeMenuMarker("marker1")
 
     menu_handler.apply(server, "marker1")
