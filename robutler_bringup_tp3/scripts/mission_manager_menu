@@ -308,8 +308,8 @@ def main():
 
     entry = menu_handler.insert("PlayGround", parent=h_first_entry,
                                 callback=partial(moveTo,
-                                                 x=-4.962322, y=-2.987908, z=0,
-                                                 R=-0.000007, P=0.003169, Y=-2.768683,
+                                                 x=-4.960100, y=-2.515024, z=0,
+                                                 R=-0.000007, P=0.003196, Y=-2.585786,   #mudei aqui
                                                  location='PlayGround',
                                                  goal_publisher=goal_publisher))
     
