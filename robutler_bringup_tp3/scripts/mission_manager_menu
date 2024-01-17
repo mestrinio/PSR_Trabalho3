@@ -346,8 +346,8 @@ def main():
                                                  camera_listener=CameraListener))
     entry = menu_handler.insert("Living_Room", parent=h_second_entry,
                                 callback=partial(takeAPicture,
-                                                 x=-3.538686, y=1.386727, z=0,
-                                                 R=0, P=0.003170, Y=-2.197480,
+                                                 x=-0.049086, y=2.307656, z=0,
+                                                 R=0, P=0.003169, Y=-1.387612,
                                                  location='Living_Room',
                                                  goal_publisher=goal_publisher,
                                                  camera_listener=CameraListener))
