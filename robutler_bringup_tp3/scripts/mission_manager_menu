@@ -214,7 +214,7 @@ def takeAPicture(feedback, x, y, z, R, P, Y, location, goal_publisher, camera_li
 
     # TODO know when move is finished
     try:
-        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=60)
+        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=80)
     except:
         print('Timeout waiting for moveto')
         # TODO
@@ -294,8 +294,8 @@ def main():
     
     entry = menu_handler.insert("Kitchen", parent=h_first_entry,
                                 callback=partial(moveTo,
-                                                 x=6.568593, y=-1.788789, z=0,
-                                                 R=0, P=0, Y=-1.504141,
+                                                 x=6.448510, y=-1.855999, z=0,
+                                                 R=-0.003190, P=0.000139, Y=-1.489310,
                                                  location='Kitchen',
                                                  goal_publisher=goal_publisher))
 
@@ -306,12 +306,20 @@ def main():
                                                  location='Bedroom',
                                                  goal_publisher=goal_publisher))
 
-    entry = menu_handler.insert("PlayGround", parent=h_first_entry,
+    # entry = menu_handler.insert("Playground", parent=h_first_entry,
+    #                             callback=partial(moveTo,
+    #                                              x=-4.960100, y=-2.515024, z=0,
+    #                                              R=-0.000007, P=0.003196, Y=-2.585786,   #mudei aqui
+    #                                              location='Playground',
+    #                                              goal_publisher=goal_publisher))
+   
+    entry = menu_handler.insert("Playground", parent=h_first_entry,
                                 callback=partial(moveTo,
-                                                 x=-4.960100, y=-2.515024, z=0,
-                                                 R=-0.000007, P=0.003196, Y=-2.585786,   #mudei aqui
-                                                 location='PlayGround',
+                                                 x=-5.515287, y=-3.298660, z=0,
+                                                 R=-0.000007, P=0.003178, Y=-2.469781,   #mudei aqui
+                                                 location='Playground',
                                                  goal_publisher=goal_publisher))
+    #alternativa p= 0,003179 y= 0,930680
     
     entry = menu_handler.insert("Living_Room", parent=h_first_entry,
                                 callback=partial(moveTo,

@@ -114,7 +114,7 @@
     <sensor type="ray" name="lds_lfcd_sensor">
       <pose>0 0 0 0 0 0</pose>
       <visualize>$(arg laser_visual)</visualize>
-      <update_rate>15</update_rate>
+      <update_rate>5</update_rate>
       <ray>
         <scan>
           <horizontal>
@@ -125,9 +125,9 @@
           </horizontal>
         </scan>
         <range>
-          <min>0.250</min>
-          <max>7</max>
-          <resolution>0.025</resolution>
+          <min>0.120</min>
+          <max>3.5</max>
+          <resolution>0.015</resolution>
         </range>
         <noise>
           <type>gaussian</type>
