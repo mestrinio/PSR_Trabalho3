@@ -18,9 +18,9 @@ def main():
     # -------------------------------
     parser = argparse.ArgumentParser(description='Script to compute perfect numbers.')
     parser.add_argument('-l', '--location', type=str, help='', required=False,
-                        default='on_bed')
+                        default='on_kitchen')
     parser.add_argument('-o', '--object', type=str, help='', required=False,
-                        default='person_standing')
+                        default='sphere_v')
 
     args = vars(parser.parse_args())  # creates a dictionary
     print(args)
@@ -28,7 +28,7 @@ def main():
     rospack = rospkg.RosPack()
     package_path = rospack.get_path('robutler_description_tp3') + '/models/'
 
-    # Defines poses where to put objects
+    ################# Defines poses where to put objects   #############
     poses = {}
 
     # on bed pose
@@ -44,8 +44,16 @@ def main():
     q = quaternion_from_euler(0, 0, 0)  # From euler angles (rpy) to quaternion
     p.orientation = Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
     poses['on_bed_side_table'] = {'pose': p}
+    
+    # on kitchen floor
+    p = Pose()
+    p.position = Point(x=6.994423, y=-2.998756, z=0.130587)
+    q = quaternion_from_euler(0, 0, 0)  # From euler angles (rpy) to quaternion
+    p.orientation = Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
+    poses['on_kitchen'] = {'pose': p}
 
-    # define objects
+
+    ###################### Define objects ########################
     objects = {}
 
     # add object sphere_v
