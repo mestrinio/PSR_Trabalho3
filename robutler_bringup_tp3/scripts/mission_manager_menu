@@ -16,7 +16,7 @@ from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 import cv2
 from visualization_msgs.msg import Marker
-from color_detection import object_detection, image_callback
+from color_detection import ObjectDetectionNode
 
 
 
@@ -172,18 +172,6 @@ def updateMissionDescription(mission_name, mission_location, complete_message=No
 
         # Update the global variable
         current_mission_marker = mission_text_marker
-
-#def __init__(self,location,image_sub):
-#    self.location=location
-#    self.bridge = CvBridge()
-#    self.image_sub=rospy.Subscriber(image_sub,Image,self.image_callback)
-#    self.image_saved = False
-#    if not rospy.get_node_uri():
-#            rospy.init_node('object_detection_node', anonymous=True)
-#            self.bridge = CvBridge()
-#            #Aqui posso fazer um switch de camara se for useful, para a camara de cima
-#            self.image_sub = rospy.Subscriber('/camera/rgb/image_raw', Image, self.image_callback)
-#            self.object_count = 0
     
 
 class CameraListener:
@@ -321,10 +309,10 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, goal_publisher):
     rospy.sleep(10)  # Adjust this duration based on your requirements
     
     # Access the object count from the object detection node
-    object_count = object_detection(feedback)
-
+    object_contours = ObjectDetectionNode().object_contours
+    print (object_contours)
     # Display the result in the mission description
-    complete_message = f"Mission complete! Found {object_count} objects in {location}."
+    complete_message = f"Mission complete! Found {'X'} objects in {location}."
     updateMissionDescription(complete_message, mission_location=location)
 
     # Optionally, perform additional logic after object detection
