@@ -22,6 +22,7 @@ def main():
     parser.add_argument('-o', '--object', type=str, help='', required=False,
                         default='sphere_v')
 
+ ################################### FAZER MODO RANDOM POSITION ######################
     args = vars(parser.parse_args())  # creates a dictionary
     print(args)
 

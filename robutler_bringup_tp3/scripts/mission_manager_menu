@@ -16,6 +16,8 @@ from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 import cv2
 from visualization_msgs.msg import Marker
+from color_detection import ObjectDetectionNode
+
 
 
 server = None
@@ -23,9 +25,13 @@ marker_pos = 1
 menu_handler = MenuHandler()
 h_first_entry = 0
 h_second_entry = 0 ###
+h_third_entry = 0 ###
 h_mode_last = 0
 
 current_mission_marker = None
+########### TA MALL aqui
+object_detection_node = ObjectDetectionNode()
+
 
 def enableCb(feedback):
     handle = feedback.menu_entry_id
@@ -269,6 +275,52 @@ def moveTo(feedback, x, y, z, R, P, Y, location, goal_publisher):
     complete_message = "Mission complete!! Uff"
     updateMissionDescription(complete_message, mission_location=location)
 
+def searchForObject(feedback, x, y, z, R, P, Y, location, goal_publisher):
+    global object_detection_node
+    print('Called searching for objects in ' + location)
+    updateMissionDescription("Searching for objects in the {}".format(location), mission_location=location)
+    
+    p = Pose()
+    p.position = Point(x=x, y=y, z=z)
+    q = quaternion_from_euler(R, P, Y)  # From euler angles (rpy) to quaternion
+    p.orientation = Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
+
+    ps = PoseStamped()
+    ps.pose = p
+    ps.header = Header(frame_id='map', stamp=rospy.Time.now())
+
+    print('Sending Goal to ' + location)
+    goal_publisher.publish(ps)
+
+    # TODO: Wait for move_base to finish
+    try:
+        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=60)
+    except:
+        print('Timeout waiting for move_base')
+        # TODO: Handle timeout
+        return
+
+    print('Move base completed goal with result ' + str(result_msg))
+
+    # Start the object detection node
+
+    # Wait for some time to allow the object detection to run
+    rospy.sleep(10)  # Adjust this duration based on your requirements
+
+    # Access the object count from the object detection node
+    object_count = object_detection_node.object_count
+
+    # Display the result in the mission description
+    complete_message = f"Mission complete! Found {object_count} objects in {location}."
+    updateMissionDescription(complete_message, mission_location=location)
+
+    # Optionally, perform additional logic after object detection
+    print("Additional logic after object detection.")
+
+    # Signal shutdown or proceed with the next mission
+    # rospy.signal_shutdown("Mission complete. Shutting down.")
+    return
+
 
 def main():
     global server
@@ -288,6 +340,7 @@ def main():
     location = "spawn" 
     h_first_entry = menu_handler.insert("Move to")
     h_second_entry = menu_handler.insert("Take a Picture")
+    h_third_entry = menu_handler.insert("Search for object in division")
     updateMissionDescription("Waiting for a Mission to start",mission_location=location)
 
             ############################ Move to missions ##########################################
@@ -305,13 +358,6 @@ def main():
                                                  R=-0.000007, P=0.003198, Y=1.980398,
                                                  location='Bedroom',
                                                  goal_publisher=goal_publisher))
-
-    # entry = menu_handler.insert("Playground", parent=h_first_entry,
-    #                             callback=partial(moveTo,
-    #                                              x=-4.960100, y=-2.515024, z=0,
-    #                                              R=-0.000007, P=0.003196, Y=-2.585786,   #mudei aqui
-    #                                              location='Playground',
-    #                                              goal_publisher=goal_publisher))
    
     entry = menu_handler.insert("Playground", parent=h_first_entry,
                                 callback=partial(moveTo,
@@ -319,7 +365,6 @@ def main():
                                                  R=-0.000007, P=0.003178, Y=-2.469781,   #mudei aqui
                                                  location='Playground',
                                                  goal_publisher=goal_publisher))
-    #alternativa p= 0,003179 y= 0,930680
     
     entry = menu_handler.insert("Living_Room", parent=h_first_entry,
                                 callback=partial(moveTo,
@@ -359,6 +404,23 @@ def main():
                                                  location='Living_Room',
                                                  goal_publisher=goal_publisher,
                                                  camera_listener=CameraListener))
+    
+    ############################### Search for object missions #######################
+
+
+    entry = menu_handler.insert("Kitchen", parent=h_third_entry,
+                                callback=partial(searchForObject,
+                                                x=2.987402, y=0.553971, z=0,
+                                                R=0, P=0.003182, Y=-0.620476,
+                                                location='Kitchen',
+                                                goal_publisher=goal_publisher))
+
+    entry = menu_handler.insert("Gym", parent=h_third_entry,
+                                callback=partial(searchForObject,
+                                                x=1.544719, y=0.655930, z=0,
+                                                R=0, P=0.003175, Y=1.103783,
+                                                location='Gym',
+                                                goal_publisher=goal_publisher))
     makeMenuMarker("marker1")
 
     menu_handler.apply(server, "marker1")

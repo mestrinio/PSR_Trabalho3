@@ -6,12 +6,17 @@ from cv_bridge import CvBridge, CvBridgeError
 import cv2
 import numpy as np
 
+#Turn this into a mission that he starts going around the house and searching for objects
+#Ideia o robot dizer onde encontrou as esferas tipo nome da localização, mission where is ball, juntar com o update mission
+
 class ObjectDetectionNode:
     def __init__(self):
-        rospy.init_node('object_detection_node', anonymous=True)
-        self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber('/camera/rgb/image_raw', Image, self.image_callback)
-        self.object_count = 0
+        if not rospy.get_node_uri():
+            rospy.init_node('object_detection_node', anonymous=True)
+            self.bridge = CvBridge()
+            #Aqui posso fazer um switch de camara se for useful, para a camara de cima
+            self.image_sub = rospy.Subscriber('/camera/rgb/image_raw', Image, self.image_callback)
+            self.object_count = 0
 
     def image_callback(self, data):
         try:
@@ -22,16 +27,12 @@ class ObjectDetectionNode:
 
         # Convert BGR to HSV
         hsv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
-
-        # Define the range for the color you want to detect (adjust these values)
-        # lower_color = np.array([30, 50, 50])
-        # upper_color = np.array([60, 255, 255])
         
         #DIFFERENT COLORS 
 
         #Purple
-        #lower_color = np.array([120, 50, 50])
-        #upper_color = np.array([150, 255, 255])
+        lower_color = np.array([120, 50, 50])
+        upper_color = np.array([150, 255, 255])
         
         #Blue
         #lower_color = np.array([100, 50, 50])
@@ -42,8 +43,8 @@ class ObjectDetectionNode:
         # upper_color = np.array([130, 255, 255])
 
         #Orange
-        lower_color = np.array([10, 100, 100])
-        upper_color = np.array([25, 255, 255])
+        #lower_color = np.array([10, 100, 100])
+        #upper_color = np.array([25, 255, 255])
 
 
 
