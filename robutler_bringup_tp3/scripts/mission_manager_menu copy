@@ -310,7 +310,6 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, goal_publisher):
     # Access the object count from the object detection node
     object_contours = ObjectDetectionNode().object_contours
     print (object_contours)
-    
     # Display the result in the mission description
     complete_message = f"Mission complete! Found {'X'} objects in {location}."
     updateMissionDescription(complete_message, mission_location=location)
