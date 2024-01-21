@@ -99,11 +99,13 @@ class ObjectDetectionNode:
                 if area > 100:  # adjust this threshold based on your needs
                     x, y, w, h = cv2.boundingRect(contour)
                     cv2.rectangle(cv_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    label = f"{color}"
+                    cv2.putText(cv_image, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
                     self.object_contours[color] += 1
         
         print(self.object_contours)
         # Display the result (you can remove this in the final version)
-        cv2.putText(cv_image, f'Objects in Frame: {self.object_contours}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,0), 2)   
+        cv2.putText(cv_image, f'Objects in Frame: {self.object_contours}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,0), 2)   
         cv2.imshow("Object Detection", cv_image)        
         cv2.waitKey(1)
         
