@@ -16,7 +16,7 @@ from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 import cv2
 from visualization_msgs.msg import Marker
-from color_detection_copy import ObjectDetectionNode
+from color_detection import ObjectDetectionNode
 
 
 
@@ -303,20 +303,13 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, goal_publisher):
     print('Move base completed goal with result ' + str(result_msg))
 
     # Start the object detection node
-    object_detection_node = ObjectDetectionNode()
-
-    try:
-        rospy.spin()
-    except KeyboardInterrupt:
-        cv2.destroyAllWindows()
 
     # Wait for some time to allow the object detection to run
-    #rospy.sleep(10)  # Adjust this duration based on your requirements
+    rospy.sleep(10)  # Adjust this duration based on your requirements
     
     # Access the object count from the object detection node
     object_contours = ObjectDetectionNode().object_contours
-    print ("OBJETOS AQUI" + object_contours)
-    
+    print (object_contours)
     # Display the result in the mission description
     complete_message = f"Mission complete! Found {'X'} objects in {location}."
     updateMissionDescription(complete_message, mission_location=location)
