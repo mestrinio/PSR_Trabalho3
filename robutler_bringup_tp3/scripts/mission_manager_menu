@@ -310,6 +310,7 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, goal_publisher):
     except KeyboardInterrupt:
         cv2.destroyAllWindows()
 
+
     # Wait for some time to allow the object detection to run
     #rospy.sleep(10)  # Adjust this duration based on your requirements
     
@@ -428,6 +429,21 @@ def main():
                                                 R=0, P=0.003175, Y=1.103783,
                                                 location='Gym',
                                                 goal_publisher=goal_publisher))
+    
+    entry = menu_handler.insert("Bedroom", parent=h_second_entry,
+                                callback=partial(searchForObject,
+                                                 x=-3.003071, y=-1.536944, z=0,
+                                                 R=0, P=0.003176, Y=2.376887,
+                                                 location='Bedroom',
+                                                 goal_publisher=goal_publisher))
+    
+    entry = menu_handler.insert("Living_Room", parent=h_second_entry,
+                                callback=partial(searchForObject,
+                                                 x=-0.049086, y=2.307656, z=0,
+                                                 R=0, P=0.003169, Y=-1.387612,
+                                                 location='Living_Room',
+                                                 goal_publisher=goal_publisher))
+    
     makeMenuMarker("marker1")
 
     menu_handler.apply(server, "marker1")

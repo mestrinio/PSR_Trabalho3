@@ -14,7 +14,6 @@ class ObjectDetectionNode:
             self.bridge = CvBridge()
             self.image_sub = rospy.Subscriber('/camera/rgb/image_raw', Image, self.image_callback)
 
-
     def create_masks(self, image):
             
         #DIFFERENT COLORS 
@@ -101,6 +100,7 @@ class ObjectDetectionNode:
         cv2.imshow("Object Detection", cv_image)        
         cv2.waitKey(1)
         
+
         # try:
         #     rospy.spin()
         # except KeyboardInterrupt:

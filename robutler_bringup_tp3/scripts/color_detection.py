@@ -31,9 +31,8 @@ class ObjectDetectionNode:
         upper_purple = np.array([150, 255, 255])
 
         #Blue
-        lower_blue = np.array([100, 50, 50])
-        upper_blue = np.array([130, 255, 255])
-
+        lower_blue = np.array([78,158,124])  # Acertos na deteção do blue das bolas 
+        upper_blue = np.array([138,255,255])
 
         #Light blue
         lower_lblue = np.array([100, 100, 100])
@@ -65,17 +64,17 @@ class ObjectDetectionNode:
         masks = {
             "purple" : cv2.inRange(image, lower_purple, upper_purple),
             "blue" : cv2.inRange(image, lower_blue, upper_blue),
-            "lblue" : cv2.inRange(image, lower_lblue, upper_lblue),
-            "orange": cv2.inRange(image, lower_orange, upper_orange),
+            "l_blue" : cv2.inRange(image, lower_lblue, upper_lblue),
+            #"orange": cv2.inRange(image, lower_orange, upper_orange),
             "green" : cv2.inRange(image, lower_green, upper_green),
-            "yellow" : cv2.inRange(image, lower_yellow, upper_yellow),
+            #"yellow" : cv2.inRange(image, lower_yellow, upper_yellow),
             "red" : cv2.inRange(image, lower_red, upper_red), 
         }
 
         return masks
             
     
-    def image_callback(self,data):
+    def image_callback(self, data):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, 'bgr8')
         except CvBridgeError as e:
@@ -87,18 +86,13 @@ class ObjectDetectionNode:
         
         color_contours = {}
         masks = self.create_masks(hsv_image)
-        for color, mask in masks:        
-            # Bitwise-AND mask and original image
-            #result = cv2.bitwise_and(cv_image, cv_image, mask=mask)
+        for color, mask in masks.items():  # Use items() to iterate through dictionary key-value pairs
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            # Draw bounding boxes around detected objects
-            
-            color_contours[color]=contours
+            color_contours[color] = contours
 
-        self.object_contours = {
-        }
+        self.object_contours = {}
 
-        for color, contours in color_contours:
+        for color, contours in color_contours.items():
             self.object_contours[color] = 0
             for contour in contours:
                 area = cv2.contourArea(contour)
@@ -109,14 +103,14 @@ class ObjectDetectionNode:
         
         print(self.object_contours)
         # Display the result (you can remove this in the final version)
-        cv2.putText(cv_image, f'Objects in Frame: {self.object_contours}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)   
+        cv2.putText(cv_image, f'Objects in Frame: {self.object_contours}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,0), 2)   
         cv2.imshow("Object Detection", cv_image)        
         cv2.waitKey(1)
         
-        try:
-            rospy.spin()
-        except KeyboardInterrupt:
-            cv2.destroyAllWindows()
+        # try:
+        #     rospy.spin()
+        # except KeyboardInterrupt:
+        #     cv2.destroyAllWindows()
 
 
 def main():
