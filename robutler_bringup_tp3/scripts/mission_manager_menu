@@ -17,6 +17,7 @@ from sensor_msgs.msg import Image
 import cv2
 from visualization_msgs.msg import Marker
 from color_detection_copy import ObjectDetectionNode
+from ultralytics import YOLO
 
 
 
@@ -26,6 +27,7 @@ menu_handler = MenuHandler()
 h_first_entry = 0
 h_second_entry = 0 ###
 h_third_entry = 0 ###
+h_fourth_entry = 0 ####
 h_mode_last = 0
 
 current_mission_marker = None
@@ -301,14 +303,19 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, goal_publisher):
         return
 
     print('Move base completed goal with result ' + str(result_msg))
-
+    
     # Start the object detection node
+    duration = rospy.Duration(5.0)
     object_detection_node = ObjectDetectionNode()
+
+    object_detection_node.shutdown_timer = rospy.Time.now() + duration 
 
     try:
         rospy.spin()
     except KeyboardInterrupt:
         cv2.destroyAllWindows()
+
+        #########################WORKING ON THIS PART NEXT###########################
 
 
     # Wait for some time to allow the object detection to run
@@ -328,6 +335,179 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, goal_publisher):
     # Signal shutdown or proceed with the next mission
     # rospy.signal_shutdown("Mission complete. Shutting down.")
     return
+
+def searchForPerson(feedback,goal_publisher, camera_listener):
+    
+    #Inicialization of Yolo
+    model = YOLO('yolov8n.pt')
+
+    source1 = '../person_laptop/Person1.png'
+    source2 = '../person_laptop/Person2.png'
+    source3 = '../person_laptop/Person3.png'
+
+    # Run inference on 'IMAGE1' with arguments
+    model.predict(source1, save=True, imgsz=320, conf=0.5, save_txt = True)
+    model.predict(source2, save=True, imgsz=320, conf=0.5, save_txt = True)
+    model.predict(source3, save=True, imgsz=320, conf=0.5, save_txt = True)
+
+    has_people=[]
+
+    #MoveTo start
+    location="kitchen"
+    print('First, moving to ' + location)
+    updateMissionDescription("Moving to the {} to see if someone is there".format(location), mission_location=location)
+    p1 = Pose()
+    p1.position = Point(x=3.172562, y=-0.001934, z=-0.001006)
+    q1 = quaternion_from_euler(0, 0.003169, -0.292047)  # From euler angles (rpy) to quaternion
+    p1.orientation = Quaternion(x=q1[0], y=q1[1], z=q1[2], w=q1[3])
+
+    #1 localização
+
+    path1 = PoseStamped()
+    path1.pose = p1
+    path1.header = Header(frame_id='map', stamp=rospy.Time.now())
+
+    print('First looking in : ' + location)
+    goal_publisher.publish(path1)
+
+    # with path1 as f:
+    #     c = f.read()
+    #     if not c:
+    #         has_people.append(False)
+    #     elif c[0] != '0':
+    #         has_people.append(False)
+    #     else:
+    #         has_people.append(True)
+
+    # TODO know when move is finished
+    try:
+        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=80)
+    except:
+        print('Timeout waiting for moveto')
+        # TODO
+        return
+
+    #UpdateMissionDescription("Mission complete!! Uff")
+    print('move base completed goal with result ' + str(result_msg))
+
+    
+    # Initialize CameraListener within the takeAPicture function
+    camera_listener_instance = camera_listener(location)
+
+    with path1 as f:
+        c = f.read()
+        if not c:
+            has_people.append(False)
+        elif c[0] != '0':
+            has_people.append(False)
+        else:
+            has_people.append(True)
+
+    complete_message = "Completed my first trip, lets look in another place"
+    updateMissionDescription(complete_message, mission_location=location)
+    # Wait for some time to ensure that the CameraListener has captured the image
+    rospy.sleep(5)
+    
+    #2 localização
+
+    location="living_room"
+    print('Now checking : ' + location)
+    #updateMissionDescription("Moving to the {} to see if someone is there".format(location), mission_location=location)
+    p2 = Pose()
+    p2.position = Point(x=6.245474, y=-1.511837, z=-0.001006)
+    q2 = quaternion_from_euler(0 , 0.003169, 2.786313)  # From euler angles (rpy) to quaternion
+    p2.orientation = Quaternion(x=q2[0], y=q2[1], z=q2[2], w=q2[3])
+
+    path2 = PoseStamped()
+    path2.pose = p2
+    path2.header = Header(frame_id='map', stamp=rospy.Time.now())
+
+    print('Now cheking : ' + location)
+    goal_publisher.publish(path2)
+
+    # TODO know when move is finished
+    try:
+        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=80)
+    except:
+        print('Timeout waiting for moveto')
+        # TODO
+        return
+
+    #UpdateMissionDescription("Mission complete!! Uff")
+    print('move base completed goal with result ' + str(result_msg))
+
+    
+    # Initialize CameraListener within the takeAPicture function
+    camera_listener_instance = camera_listener(location)
+
+    with path2 as f:
+        c = f.read()
+        if not c:
+            has_people.append(False)
+        elif c[0] != '0':
+            has_people.append(False)
+        else:
+            has_people.append(True)
+
+    complete_message = "I sucessfully analized this place aswell"
+    updateMissionDescription(complete_message, mission_location=location)
+    # Wait for some time to ensure that the CameraListener has captured the image
+    rospy.sleep(5)
+    
+    #3 localização 
+
+    location="bedroom"
+    print('Now checking : ' + location)
+    #updateMissionDescription("Moving to the {} to see if someone is there".format(location), mission_location=location)
+    p3 = Pose()
+    p3.position = Point(x=-2.405233, y=-0.992072, z=-0.001006)
+    q3 = quaternion_from_euler(0 , 0.003181, 2.740030)  # From euler angles (rpy) to quaternion
+    p3.orientation = Quaternion(x=q3[0], y=q3[1], z=q3[2], w=q3[3])
+
+    path3 = PoseStamped()
+    path3.pose = p3
+    path3.header = Header(frame_id='map', stamp=rospy.Time.now())
+
+    print('Lastly cheking for people in : ' + location)
+    goal_publisher.publish(path3)
+
+    # TODO know when move is finished
+    try:
+        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=80)
+    except:
+        print('Timeout waiting for moveto')
+        # TODO
+        return
+
+    #UpdateMissionDescription("Mission complete!! Uff")
+    print('move base completed goal with result ' + str(result_msg))
+
+    
+    # Initialize CameraListener within the takeAPicture function
+    camera_listener_instance = camera_listener(location)
+
+    with path3 as f:
+        c = f.read()
+        if not c:
+            has_people.append(False)
+        elif c[0] != '0':
+            has_people.append(False)
+        else:
+            has_people.append(True)
+
+    complete_message = "All the photos are taken, lets check results"
+    updateMissionDescription(complete_message, mission_location=location)
+    # Wait for some time to ensure that the CameraListener has captured the image
+    rospy.sleep(5)
+
+    print(has_people)
+    complete_message = "According to my calculations..."
+    updateMissionDescription(complete_message, mission_location=location)
+
+    # Perform any additional processing or mission planning logic
+    print("Mission planning logic after taking a picture.")
+    return
+
 
 
 def main():
@@ -349,6 +529,7 @@ def main():
     h_first_entry = menu_handler.insert("Move to")
     h_second_entry = menu_handler.insert("Take a Picture")
     h_third_entry = menu_handler.insert("Search for object in division")
+    h_fourth_entry = menu_handler.insert("Is Someone Home?")
     updateMissionDescription("Waiting for a Mission to start",mission_location=location)
 
             ############################ Move to missions ##########################################
@@ -443,6 +624,14 @@ def main():
                                                  R=0, P=0.003169, Y=-1.387612,
                                                  location='Living_Room',
                                                  goal_publisher=goal_publisher))
+    
+    ############################### Is someone home missions #######################
+
+
+    entry = menu_handler.insert("Is someone home?", parent=h_fourth_entry,
+                                callback=partial(searchForPerson,
+                                                 goal_publisher=goal_publisher,
+                                                 camera_listener=CameraListener))
     
     makeMenuMarker("marker1")
 

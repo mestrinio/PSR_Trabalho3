@@ -13,7 +13,6 @@ class ObjectDetectionNode:
             #rospy.init_node('object_detection_node', anonymous=True)
             self.bridge = CvBridge()
             self.image_sub = rospy.Subscriber('/camera/rgb/image_raw', Image, self.image_callback)
-            self.shutdown_timer = None
 
     def create_masks(self, image):
             
@@ -74,10 +73,7 @@ class ObjectDetectionNode:
         except CvBridgeError as e:
             rospy.logerr(e)
             return
-        if self.shutdown_timer and rospy.Time.now() >= self.shutdown_timer:
-            self.image_sub.unregister()  # Unsubscribe from image topic
-            rospy.loginfo("Time limit reached. Stopping image processing.")
-            return  # Stop processing images
+
         # Convert BGR to HSV
         hsv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
         

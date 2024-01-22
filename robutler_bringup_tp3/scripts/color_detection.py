@@ -6,7 +6,7 @@ from cv_bridge import CvBridge, CvBridgeError
 import cv2
 import numpy as np
 
-
+####################################### This script is for individual use, not paired with mission_maneger ##########################################
 
 #Turn this into a mission that he starts going around the house and searching for objects
 #Ideia o robot dizer onde encontrou as esferas tipo nome da localização, mission where is ball, juntar com o update mission
@@ -18,14 +18,13 @@ class ObjectDetectionNode:
         self.bridge = CvBridge()
         #Aqui posso fazer um switch de camara se for useful, para a camara de cima
         self.image_sub = rospy.Subscriber('/camera/rgb/image_raw', Image, self.image_callback)
-        print('miau')
         print(dir(self.image_sub))
 
 
 
     def create_masks(self,image):
         
-        #DIFFERENT COLORS 
+        #DIFFERENT COLORS - NECESSITA ALTERAÇOES EM TDOAS MENOS PURPLE E BLUE
         #Purple
         lower_purple = np.array([120, 50, 50])
         upper_purple = np.array([150, 255, 255])
@@ -38,10 +37,9 @@ class ObjectDetectionNode:
         lower_lblue = np.array([100, 100, 100])
         upper_lblue = np.array([130, 255, 255])
 
-
         #Orange
-        lower_orange = np.array([10, 100, 100])
-        upper_orange = np.array([25, 255, 255])
+        lower_orange = np.array([20, 100, 100]) #alterações aqui
+        upper_orange = np.array([40, 255, 255])
 
 
         #Green
@@ -59,13 +57,12 @@ class ObjectDetectionNode:
         upper_red = np.array([10, 255, 255])
 
 
-
         # Threshold the image to get only the desired color
         masks = {
             "purple" : cv2.inRange(image, lower_purple, upper_purple),
             "blue" : cv2.inRange(image, lower_blue, upper_blue),
             "l_blue" : cv2.inRange(image, lower_lblue, upper_lblue),
-            #"orange": cv2.inRange(image, lower_orange, upper_orange),
+            "orange": cv2.inRange(image, lower_orange, upper_orange),
             "green" : cv2.inRange(image, lower_green, upper_green),
             #"yellow" : cv2.inRange(image, lower_yellow, upper_yellow),
             "red" : cv2.inRange(image, lower_red, upper_red), 
@@ -100,12 +97,12 @@ class ObjectDetectionNode:
                     x, y, w, h = cv2.boundingRect(contour)
                     cv2.rectangle(cv_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
                     label = f"{color}"
-                    cv2.putText(cv_image, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+                    cv2.putText(cv_image, label, (x + 3, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
                     self.object_contours[color] += 1
         
         print(self.object_contours)
         # Display the result (you can remove this in the final version)
-        cv2.putText(cv_image, f'Objects in Frame: {self.object_contours}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,0), 2)   
+        cv2.putText(cv_image, f'Objects in Frame: {self.object_contours}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0,0,0), 2)   
         cv2.imshow("Object Detection", cv_image)        
         cv2.waitKey(1)
         
