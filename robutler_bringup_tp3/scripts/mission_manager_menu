@@ -204,6 +204,34 @@ class CameraListener:
             except Exception as e:
                 rospy.logerr("Error processing image: {}".format(e))
 
+class CameraListener2:
+    def __init__(self,location):
+        self.location=location
+        self.bridge = CvBridge()
+        self.image_sub = rospy.Subscriber("/camera/rgb/top_image_raw", Image, self.image_callback)
+        self.image_saved = False
+
+    def image_callback(self, data,file_nmbr):
+        if hasattr(self, 'image_saved') and not self.image_saved:
+            try:
+                cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+                package_name = "robutler_bringup_tp3"
+                rospack = RosPack()
+                package_path = rospack.get_path(package_name)
+                directory_path = os.path.join(package_path, "runs/detect/predict/labels")                            
+                if file_nmbr == 1:                
+                    file_name = "Person1.txt"
+                elif file_nmbr == 2:
+                    file_name = "Person2.txt"
+                else:
+                    file_name = "Person3.txt"
+                os.chdir(directory_path)
+                cv2.imwrite(file_name, cv_image)
+                rospy.loginfo("Image saved successfully as: " + file_name + ".")
+                self.image_saved = True
+            except Exception as e:
+                rospy.logerr("Error processing image: {}".format(e))
+
 
 def takeAPicture(feedback, x, y, z, R, P, Y, location, goal_publisher, camera_listener):
     print('First, moving to ' + location)
@@ -336,22 +364,8 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, goal_publisher):
     # rospy.signal_shutdown("Mission complete. Shutting down.")
     return
 
+
 def searchForPerson(feedback,goal_publisher, camera_listener):
-    
-    #Inicialization of Yolo
-    model = YOLO('yolov8n.pt')
-
-    source1 = '../person_laptop/Person1.png'
-    source2 = '../person_laptop/Person2.png'
-    source3 = '../person_laptop/Person3.png'
-
-    # Run inference on 'IMAGE1' with arguments
-    model.predict(source1, save=True, imgsz=320, conf=0.5, save_txt = True)
-    model.predict(source2, save=True, imgsz=320, conf=0.5, save_txt = True)
-    model.predict(source3, save=True, imgsz=320, conf=0.5, save_txt = True)
-
-    has_people=[]
-
     #MoveTo start
     location="kitchen"
     print('First, moving to ' + location)
@@ -363,21 +377,12 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
 
     #1 localização
 
-    path1 = PoseStamped()
-    path1.pose = p1
-    path1.header = Header(frame_id='map', stamp=rospy.Time.now())
+    ps1 = PoseStamped()
+    ps1.pose = p1
+    ps1.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
 
     print('First looking in : ' + location)
-    goal_publisher.publish(path1)
-
-    # with path1 as f:
-    #     c = f.read()
-    #     if not c:
-    #         has_people.append(False)
-    #     elif c[0] != '0':
-    #         has_people.append(False)
-    #     else:
-    #         has_people.append(True)
+    goal_publisher.publish(ps1)
 
     # TODO know when move is finished
     try:
@@ -392,16 +397,7 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
 
     
     # Initialize CameraListener within the takeAPicture function
-    camera_listener_instance = camera_listener(location)
-
-    with path1 as f:
-        c = f.read()
-        if not c:
-            has_people.append(False)
-        elif c[0] != '0':
-            has_people.append(False)
-        else:
-            has_people.append(True)
+    camera_listener_instance = camera_listener(location,1)
 
     complete_message = "Completed my first trip, lets look in another place"
     updateMissionDescription(complete_message, mission_location=location)
@@ -418,12 +414,12 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
     q2 = quaternion_from_euler(0 , 0.003169, 2.786313)  # From euler angles (rpy) to quaternion
     p2.orientation = Quaternion(x=q2[0], y=q2[1], z=q2[2], w=q2[3])
 
-    path2 = PoseStamped()
-    path2.pose = p2
-    path2.header = Header(frame_id='map', stamp=rospy.Time.now())
+    ps2 = PoseStamped()
+    ps2.pose = p2
+    ps2.header = Header(frame_id='map', stamp=rospy.Time.now())
 
     print('Now cheking : ' + location)
-    goal_publisher.publish(path2)
+    goal_publisher.publish(ps2)
 
     # TODO know when move is finished
     try:
@@ -438,23 +434,15 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
 
     
     # Initialize CameraListener within the takeAPicture function
-    camera_listener_instance = camera_listener(location)
+    camera_listener_instance = camera_listener(location,2)
 
-    with path2 as f:
-        c = f.read()
-        if not c:
-            has_people.append(False)
-        elif c[0] != '0':
-            has_people.append(False)
-        else:
-            has_people.append(True)
 
     complete_message = "I sucessfully analized this place aswell"
     updateMissionDescription(complete_message, mission_location=location)
     # Wait for some time to ensure that the CameraListener has captured the image
     rospy.sleep(5)
     
-    #3 localização 
+    #3ª localização 
 
     location="bedroom"
     print('Now checking : ' + location)
@@ -464,12 +452,12 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
     q3 = quaternion_from_euler(0 , 0.003181, 2.740030)  # From euler angles (rpy) to quaternion
     p3.orientation = Quaternion(x=q3[0], y=q3[1], z=q3[2], w=q3[3])
 
-    path3 = PoseStamped()
-    path3.pose = p3
-    path3.header = Header(frame_id='map', stamp=rospy.Time.now())
+    ps3 = PoseStamped()
+    ps3.pose = p3
+    ps3.header = Header(frame_id='map', stamp=rospy.Time.now())
 
     print('Lastly cheking for people in : ' + location)
-    goal_publisher.publish(path3)
+    goal_publisher.publish(ps3)
 
     # TODO know when move is finished
     try:
@@ -484,8 +472,48 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
 
     
     # Initialize CameraListener within the takeAPicture function
-    camera_listener_instance = camera_listener(location)
+    camera_listener_instance = camera_listener(location,3)
 
+    complete_message = "All the photos are taken, lets check results"
+    updateMissionDescription(complete_message, mission_location=location)
+    # Wait for some time to ensure that the CameraListener has captured the image
+    rospy.sleep(5)
+
+    #Implementação do YOLO
+    model = YOLO('yolov8n.pt')
+
+    source1 = '../person_laptop/Person1.png'
+    source2 = '../person_laptop/Person2.png'
+    source3 = '../person_laptop/Person3.png'
+
+    # Run inference on 'IMAGE1' with arguments
+    model.predict(source1, save=True, imgsz=320, conf=0.5, save_txt = True)
+    model.predict(source2, save=True, imgsz=320, conf=0.5, save_txt = True)
+    model.predict(source3, save=True, imgsz=320, conf=0.5, save_txt = True)
+
+    has_people=[]
+
+    path1 = "./runs/detect/predict/labels/Person1.txt"
+    with path1 as f:
+        c = f.read()
+        if not c:
+            has_people.append(False)
+        elif c[0] != '0':
+            has_people.append(False)
+        else:
+            has_people.append(True)
+    
+    path2 = "./runs/detect/predict/labels/Person2.txt"    
+    with path2 as f:
+        c = f.read()
+        if not c:
+            has_people.append(False)
+        elif c[0] != '0':
+            has_people.append(False)
+        else:
+            has_people.append(True)
+    
+    path3 = "./runs/detect/predict/labels/Person3.txt"
     with path3 as f:
         c = f.read()
         if not c:
@@ -495,10 +523,7 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
         else:
             has_people.append(True)
 
-    complete_message = "All the photos are taken, lets check results"
-    updateMissionDescription(complete_message, mission_location=location)
-    # Wait for some time to ensure that the CameraListener has captured the image
-    rospy.sleep(5)
+
 
     print(has_people)
     complete_message = "According to my calculations..."
@@ -631,7 +656,7 @@ def main():
     entry = menu_handler.insert("Is someone home?", parent=h_fourth_entry,
                                 callback=partial(searchForPerson,
                                                  goal_publisher=goal_publisher,
-                                                 camera_listener=CameraListener))
+                                                 camera_listener=CameraListener2))
     
     makeMenuMarker("marker1")
 
