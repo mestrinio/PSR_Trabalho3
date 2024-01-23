@@ -218,13 +218,13 @@ class CameraListener2:
                 package_name = "robutler_bringup_tp3"
                 rospack = RosPack()
                 package_path = rospack.get_path(package_name)
-                directory_path = os.path.join(package_path, "runs/detect/predict/labels")                            
+                directory_path = os.path.join(package_path, "person_laptop")                            
                 if file_nmbr == 1:                
-                    file_name = "Person1.txt"
+                    file_name = "Person1.png"
                 elif file_nmbr == 2:
-                    file_name = "Person2.txt"
+                    file_name = "Person2.png"
                 else:
-                    file_name = "Person3.txt"
+                    file_name = "Person3.png"
                 os.chdir(directory_path)
                 cv2.imwrite(file_name, cv_image)
                 rospy.loginfo("Image saved successfully as: " + file_name + ".")
