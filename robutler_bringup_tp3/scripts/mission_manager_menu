@@ -397,7 +397,7 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
 
     
     # Initialize CameraListener within the takeAPicture function
-    camera_listener_instance = camera_listener(location,1)
+    camera_listener_instance = camera_listener(location,file_nmbr=1)
 
     complete_message = "Completed my first trip, lets look in another place"
     updateMissionDescription(complete_message, mission_location=location)
@@ -434,7 +434,7 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
 
     
     # Initialize CameraListener within the takeAPicture function
-    camera_listener_instance = camera_listener(location,2)
+    camera_listener_instance = camera_listener(location,file_nmbr=2)
 
 
     complete_message = "I sucessfully analized this place aswell"
@@ -472,7 +472,7 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
 
     
     # Initialize CameraListener within the takeAPicture function
-    camera_listener_instance = camera_listener(location,3)
+    camera_listener_instance = camera_listener(location,file_nmbr=3)
 
     complete_message = "All the photos are taken, lets check results"
     updateMissionDescription(complete_message, mission_location=location)
