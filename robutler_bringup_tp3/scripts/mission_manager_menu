@@ -438,7 +438,7 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
     camera_listener_instance = camera_listener(location,file_nmbr=2)
 
 
-    complete_message = "I sucessfully analized this place aswell"
+    complete_message = "I successfully analized this place aswell"
     updateMissionDescription(complete_message, mission_location=location)
     # Wait for some time to ensure that the CameraListener has captured the image
     rospy.sleep(5)
@@ -489,16 +489,16 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
     # Run inference on 'IMAGE1' with arguments
     model.predict(source1, save=True, imgsz=320, conf=0.5, save_txt = True)
     print('MODELO11111111111111111111111')
-    rospy.sleep(10)
+    rospy.sleep(1)
     model.predict(source2, save=True, imgsz=320, conf=0.5, save_txt = True)
-    rospy.sleep(10)
+    rospy.sleep(1)
     print('Modelo2"2222222222222222222')
     model.predict(source3, save=True, imgsz=320, conf=0.5, save_txt = True)
-    rospy.sleep(10)
+    rospy.sleep(1)
     print('MODELO3333333333333')
 
     has_people=[]
-    rospy.sleep(10)
+    rospy.sleep(3)
     
     path1 = "/home/mestre/catkin_ws/src/TP3/PSR_Trabalho3/robutler_bringup_tp3/person_laptop/runs/detect/predict/labels/Person1.txt"
     
@@ -544,10 +544,27 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
     except:
         has_people.append(False)
 
-
+    # Detections where? X,X,X
     print(has_people)
+
     complete_message = "According to my calculations..."
     updateMissionDescription(complete_message, mission_location=location)
+    
+    rospy.sleep(2)
+    
+    rooms = ['Kitchen','Living room','Bedroom']
+    people_message = ""
+    if any(people for people in has_people):
+        for room, people in zip(rooms,has_people):
+            people_message = people_message + "The {} has {} people \n".format(room,"" if people else "no")
+            print(people_message)
+            updateMissionDescription(people_message, mission_location=location)
+            rospy.sleep(5)
+    else:
+        people_message = "There isn't anyone home!"
+        updateMissionDescription(people_message, mission_location=location)
+    
+
 
     # Perform any additional processing or mission planning logic
     print("Mission planning logic after taking a picture.")
