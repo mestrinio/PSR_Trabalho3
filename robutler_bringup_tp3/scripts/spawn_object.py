@@ -94,6 +94,18 @@ def main():
     f = open(package_path + 'sphere_r/model.sdf', 'r')
     objects['sphere_r'] = {'name': 'sphere_r', 'sdf': f.read()}
 
+    # add object sphere_g (Green Sphere)
+    f = open(package_path + 'sphere_g/model.sdf', 'r')
+    objects['sphere_g'] = {'name': 'sphere_g', 'sdf': f.read()}
+
+    # add object sphere_org (Orange Sphere)
+    f = open(package_path + 'sphere_org/model.sdf', 'r')
+    objects['sphere_o'] = {'name': 'sphere_org', 'sdf': f.read()}
+    
+    # add object sphere_Y (Yellow Sphere)
+    f = open(package_path + 'sphere_y/model.sdf', 'r')
+    objects['sphere_y'] = {'name': 'sphere_y', 'sdf': f.read()}
+
     # add object person_standing
     f = open(package_path + 'person_standing/model.sdf', 'r')
     objects['person_standing'] = {'name': 'person_standing', 'sdf': f.read()}
@@ -103,7 +115,7 @@ def main():
     objects['laptop'] = {'name': 'labtop_mac_1', 'sdf': f.read()}
 
 
-    #add coca cola can
+    #add can_coke
 
     # Check if given object and location are valid
 

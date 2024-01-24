@@ -24,6 +24,9 @@ class ObjectDetectionNode:
 
     def create_masks(self,image):
         
+        # Define the region of interest (ROI) in order to ignore the orange/yellow collored floor
+        roi = image[:7 * image.shape[0] // 12, :]
+        
         #DIFFERENT COLORS - NECESSITA ALTERAÇOES EM TDOAS MENOS PURPLE E BLUE
         #Purple
         lower_purple = np.array([120, 50, 50])
@@ -37,35 +40,32 @@ class ObjectDetectionNode:
         lower_lblue = np.array([100, 100, 100])
         upper_lblue = np.array([130, 255, 255])
 
-        #Orange
-        lower_orange = np.array([20, 100, 100]) #alterações aqui
-        upper_orange = np.array([40, 255, 255])
-
+        # Orange
+        lower_orange = np.array([5, 100, 100])
+        upper_orange = np.array([20, 255, 255])
 
         #Green
-        lower_green = np.array([103, 86, 65])
-        upper_green = np.array([145, 133, 128])
+        lower_green = np.array([40, 40, 40]) 
+        upper_green = np.array([80, 255, 255]) 
 
 
-        #Yellow
-        lower_yellow = np.array([5, 100, 100])
+        # Yellow
+        lower_yellow = np.array([25, 100, 100])
         upper_yellow = np.array([40, 255, 255])
-
-
+        
         #Red
-        lower_red = np.array([5, 50, 50])
-        upper_red = np.array([10, 255, 255])
-
+        lower_red = np.array([0, 100, 100])  
+        upper_red = np.array([5, 255, 255]) 
 
         # Threshold the image to get only the desired color
         masks = {
-            "purple" : cv2.inRange(image, lower_purple, upper_purple),
-            "blue" : cv2.inRange(image, lower_blue, upper_blue),
-            "l_blue" : cv2.inRange(image, lower_lblue, upper_lblue),
-            "orange": cv2.inRange(image, lower_orange, upper_orange),
-            "green" : cv2.inRange(image, lower_green, upper_green),
-            #"yellow" : cv2.inRange(image, lower_yellow, upper_yellow),
-            "red" : cv2.inRange(image, lower_red, upper_red), 
+            "purple" : cv2.inRange(roi, lower_purple, upper_purple),
+            "blue" : cv2.inRange(roi, lower_blue, upper_blue),
+            "l_blue" : cv2.inRange(roi, lower_lblue, upper_lblue),
+            "orange": cv2.inRange(roi, lower_orange, upper_orange),
+            "green" : cv2.inRange(roi, lower_green, upper_green),
+            "yellow" : cv2.inRange(roi, lower_yellow, upper_yellow),
+            "red" : cv2.inRange(roi, lower_red, upper_red), 
         }
 
         return masks
