@@ -404,12 +404,13 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
     updateMissionDescription(complete_message, mission_location=location)
     # Wait for some time to ensure that the CameraListener has captured the image
     rospy.sleep(5)
+
     
     #2 localização
 
     location="living_room"
     print('Now checking : ' + location)
-    #updateMissionDescription("Moving to the {} to see if someone is there".format(location), mission_location=location)
+    updateMissionDescription("Moving to the {} to see if someone is there".format(location), mission_location=location)
     p2 = Pose()
     p2.position = Point(x=6.245474, y=-1.511837, z=-0.001006)
     q2 = quaternion_from_euler(0 , 0.003169, 2.786313)  # From euler angles (rpy) to quaternion
@@ -446,7 +447,7 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
     #3ª localização 
     location="bedroom"
     print('Now checking : ' + location)
-    #updateMissionDescription("Moving to the {} to see if someone is there".format(location), mission_location=location)
+    updateMissionDescription("Moving to the {} to see if someone is there".format(location), mission_location=location)
     p3 = Pose()
     p3.position = Point(x=-2.405233, y=-0.992072, z=-0.001006)
     q3 = quaternion_from_euler(0 , 0.003181, 2.740030)  # From euler angles (rpy) to quaternion
@@ -565,7 +566,8 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
         updateMissionDescription(people_message, mission_location=location)
     
 
-
+    rospy.sleep(3)
+    updateMissionDescription("Checking for humans mission has been completed successfully")
     # Perform any additional processing or mission planning logic
     print("Mission planning logic after taking a picture.")
     return
