@@ -6,14 +6,18 @@ from cv_bridge import CvBridge, CvBridgeError
 import cv2
 import numpy as np
 
+
+######################## This script is to be used only in mission_maneger_menu callback ##################
+
 class ObjectDetectionNode:
     
-    def __init__(self,argv="Object_detect"):
+    def __init__(self,duration=5.0):
             #Precisa deste primeiro nó quando se lança este sozinho
             #rospy.init_node('object_detection_node', anonymous=True)
             self.bridge = CvBridge()
             self.image_sub = rospy.Subscriber('/camera/rgb/image_raw', Image, self.image_callback)
-            self.shutdown_timer = None
+            self.duration = rospy.Duration(duration)
+            self.object_contours = {}  # Initialize object_contours dictionary
 
     def create_masks(self, image):
             
@@ -80,29 +84,36 @@ class ObjectDetectionNode:
         
         color_contours = {}
         masks = self.create_masks(hsv_image)
-        for color, mask in masks.items():  # Use items() to iterate through dictionary key-value pairs
+        for color, mask in masks.items():
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             color_contours[color] = contours
 
-        self.object_contours = {}
+        self.object_contours = 0  # Reset object_contours to 0
 
         for color, contours in color_contours.items():
-            self.object_contours[color] = 0
             for contour in contours:
                 area = cv2.contourArea(contour)
-                if area > 100:  # adjust this threshold based on your needs
+                if area > 100:
                     x, y, w, h = cv2.boundingRect(contour)
                     cv2.rectangle(cv_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
                     label = f"{color}"
                     cv2.putText(cv_image, label, (x + 3, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
-                    self.object_contours[color] += 1
+                    self.object_contours += 1  # Increment object count
+
+        print("Total Objects:", self.object_contours)
         
-        print(self.object_contours)
         # Display the result (you can remove this in the final version)
-        cv2.putText(cv_image, f'Objects in Frame: {self.object_contours}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,0), 2)   
-        cv2.imshow("Object Detection", cv_image)        
+        cv2.putText(cv_image, f'Objects in Frame: {self.object_contours}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0,0,0), 2)   
+        cv2.imshow("Object Detection", cv_image)
         cv2.waitKey(1)
-        
+
+    def start_detection(self):
+        self.shutdown_timer = rospy.Time.now() + self.duration
+        while not rospy.is_shutdown() and rospy.Time.now() < self.shutdown_timer:
+            rospy.sleep(0.1)  # Sleep for a short interval to avoid high CPU usage
+        cv2.destroyAllWindows()
+
+
 
         # try:
         #     rospy.spin()

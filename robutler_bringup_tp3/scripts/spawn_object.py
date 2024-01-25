@@ -69,10 +69,18 @@ def main():
 
     # on living room table
     p = Pose()
+    p.position = Point(x=1.891458, y=-1.630400, z=0.389908)
+    q = quaternion_from_euler(0, 0, 0)  # From euler angles (rpy) to quaternion
+    p.orientation = Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
+    poses['on_living_room_table2'] = {'pose': p}
+
+    # on living room table 2
+    p = Pose()
     p.position = Point(x=1.952598, y=-1.580895, z=0.365747)
     q = quaternion_from_euler(0, 0, 0)  # From euler angles (rpy) to quaternion
     p.orientation = Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
     poses['on_living_room_table'] = {'pose': p}
+
 
     # on bedroom table
     p = Pose()
@@ -114,8 +122,10 @@ def main():
     f = open(package_path + 'labtop_mac_1/model.sdf', 'r')
     objects['laptop'] = {'name': 'labtop_mac_1', 'sdf': f.read()}
 
-
     #add can_coke
+    f = open(package_path + 'can_coke/model.sdf', 'r')
+    objects['coke'] = {'name': 'can_coke', 'sdf': f.read()}
+
 
     # Check if given object and location are valid
 

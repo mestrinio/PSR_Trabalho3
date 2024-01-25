@@ -17,7 +17,7 @@ from sensor_msgs.msg import Image
 import cv2
 from visualization_msgs.msg import Marker
 from color_detection_copy import ObjectDetectionNode
-from ultralytics import YOLO
+#from ultralytics import YOLO
 
 
 
@@ -333,28 +333,16 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, goal_publisher):
     print('Move base completed goal with result ' + str(result_msg))
     
     # Start the object detection node
-    duration = rospy.Duration(5.0)
-    object_detection_node = ObjectDetectionNode()
+    duration = 5.0  # Set the duration for color detection
+    object_detection_node = ObjectDetectionNode(duration)
+    object_detection_node.start_detection()
 
-    object_detection_node.shutdown_timer = rospy.Time.now() + duration 
-
-    try:
-        rospy.spin()
-    except KeyboardInterrupt:
-        cv2.destroyAllWindows()
-
-        #########################WORKING ON THIS PART NEXT###########################
-
-
-    # Wait for some time to allow the object detection to run
-    #rospy.sleep(10)  # Adjust this duration based on your requirements
-    
     # Access the object count from the object detection node
-    object_contours = ObjectDetectionNode().object_contours
-    print ("OBJETOS AQUI" + object_contours)
-    
+    object_contours = object_detection_node.object_contours
+    print("OBJETOS AQUI", object_contours)
+
     # Display the result in the mission description
-    complete_message = f"Mission complete! Found {'X'} objects in {location}."
+    complete_message = f"Mission complete! Found {(object_contours)} objects in {location}."
     updateMissionDescription(complete_message, mission_location=location)
 
     # Optionally, perform additional logic after object detection
@@ -365,7 +353,8 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, goal_publisher):
     return
 
 
-def searchForPerson(feedback,goal_publisher, camera_listener):
+#Search for person Yolo only
+#def searchForPerson(feedback,goal_publisher, camera_listener):
     #MoveTo start
     location="kitchen"
     print('First, moving to ' + location)
@@ -386,7 +375,7 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
 
     # TODO know when move is finished
     try:
-        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=80)
+        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
     except:
         print('Timeout waiting for moveto')
         # TODO
@@ -403,12 +392,13 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
     updateMissionDescription(complete_message, mission_location=location)
     # Wait for some time to ensure that the CameraListener has captured the image
     rospy.sleep(5)
+
     
     #2 localização
 
     location="living_room"
     print('Now checking : ' + location)
-    #updateMissionDescription("Moving to the {} to see if someone is there".format(location), mission_location=location)
+    updateMissionDescription("Moving to the {} to see if someone is there".format(location), mission_location=location)
     p2 = Pose()
     p2.position = Point(x=6.245474, y=-1.511837, z=-0.001006)
     q2 = quaternion_from_euler(0 , 0.003169, 2.786313)  # From euler angles (rpy) to quaternion
@@ -423,7 +413,7 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
 
     # TODO know when move is finished
     try:
-        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=80)
+        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
     except:
         print('Timeout waiting for moveto')
         # TODO
@@ -437,16 +427,15 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
     camera_listener_instance = camera_listener(location,file_nmbr=2)
 
 
-    complete_message = "I sucessfully analized this place aswell"
+    complete_message = "I successfully analized this place aswell"
     updateMissionDescription(complete_message, mission_location=location)
     # Wait for some time to ensure that the CameraListener has captured the image
     rospy.sleep(5)
     
     #3ª localização 
-
     location="bedroom"
     print('Now checking : ' + location)
-    #updateMissionDescription("Moving to the {} to see if someone is there".format(location), mission_location=location)
+    updateMissionDescription("Moving to the {} to see if someone is there".format(location), mission_location=location)
     p3 = Pose()
     p3.position = Point(x=-2.405233, y=-0.992072, z=-0.001006)
     q3 = quaternion_from_euler(0 , 0.003181, 2.740030)  # From euler angles (rpy) to quaternion
@@ -461,7 +450,7 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
 
     # TODO know when move is finished
     try:
-        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=80)
+        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
     except:
         print('Timeout waiting for moveto')
         # TODO
@@ -476,7 +465,7 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
 
     complete_message = "All the photos are taken, lets check results"
     updateMissionDescription(complete_message, mission_location=location)
-    # Wait for some time to ensure that the CameraListener has captured the image
+    #Wait for some time to ensure that the CameraListener has captured the image
     rospy.sleep(5)
 
     #Implementação do YOLO
@@ -488,51 +477,88 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
 
     # Run inference on 'IMAGE1' with arguments
     model.predict(source1, save=True, imgsz=320, conf=0.5, save_txt = True)
+    print('MODELO11111111111111111111111')
+    rospy.sleep(1)
     model.predict(source2, save=True, imgsz=320, conf=0.5, save_txt = True)
+    rospy.sleep(1)
+    print('Modelo2"2222222222222222222')
     model.predict(source3, save=True, imgsz=320, conf=0.5, save_txt = True)
+    rospy.sleep(1)
+    print('MODELO3333333333333')
 
     has_people=[]
-
-    path1 = "./runs/detect/predict/labels/Person1.txt"
-    with path1 as f:
-        c = f.read()
-        if not c:
-            has_people.append(False)
-        elif c[0] != '0':
-            has_people.append(False)
-        else:
-            has_people.append(True)
+    rospy.sleep(3)
     
-    path2 = "./runs/detect/predict/labels/Person2.txt"    
-    with path2 as f:
-        c = f.read()
-        if not c:
-            has_people.append(False)
-        elif c[0] != '0':
-            has_people.append(False)
-        else:
-            has_people.append(True)
+    path1 = "/home/mestre/catkin_ws/src/TP3/PSR_Trabalho3/robutler_bringup_tp3/person_laptop/runs/detect/predict/labels/Person1.txt"
     
-    path3 = "./runs/detect/predict/labels/Person3.txt"
-    with path3 as f:
-        c = f.read()
-        if not c:
-            has_people.append(False)
-        elif c[0] != '0':
-            has_people.append(False)
-        else:
-            has_people.append(True)
+    try:
+        with open(path1) as f:
+            c = f.read()
+            if not c:
+                has_people.append(False)
+            elif c[0] != '0':
+                has_people.append(False)
+            else:
+                has_people.append(True)
+    except:
+        has_people.append(False)
+            
+    
+    path2 = "/home/mestre/catkin_ws/src/TP3/PSR_Trabalho3/robutler_bringup_tp3/person_laptop/runs/detect/predict/labels/Person2.txt"
+    
+    try:  
+        with open(path2) as f:
+            c = f.read()
+            if not c:
+                has_people.append(False)
+            elif c[0] != '0':
+                has_people.append(False)
+            else:
+                has_people.append(True)
+    except:
+        has_people.append(False)
+        
+        
+    path3 = "/home/mestre/catkin_ws/src/TP3/PSR_Trabalho3/robutler_bringup_tp3/person_laptop/runs/detect/predict/labels/Person3.txt"
+    
+    try:
+        with open(path3) as f:
+            c = f.read()
+            if not c:
+                has_people.append(False)
+            elif c[0] != '0':
+                has_people.append(False)
+            else:
+                has_people.append(True)
+    except:
+        has_people.append(False)
 
-
-
+    # Detections where? X,X,X
     print(has_people)
+
     complete_message = "According to my calculations..."
     updateMissionDescription(complete_message, mission_location=location)
+    
+    rospy.sleep(2)
+    
+    rooms = ['Kitchen','Living room','Bedroom']
+    people_message = ""
+    if any(people for people in has_people):
+        for room, people in zip(rooms,has_people):
+            people_message = people_message + "The {} has {} people \n".format(room,"" if people else "no")
+            print(people_message)
+            updateMissionDescription(people_message, mission_location=location)
+            rospy.sleep(5)
+    else:
+        people_message = "There isn't anyone home!"
+        updateMissionDescription(people_message, mission_location=location)
+    
 
+    rospy.sleep(3)
+    updateMissionDescription("Checking for humans mission has been completed successfully")
     # Perform any additional processing or mission planning logic
     print("Mission planning logic after taking a picture.")
     return
-
 
 
 def main():
@@ -554,7 +580,7 @@ def main():
     h_first_entry = menu_handler.insert("Move to")
     h_second_entry = menu_handler.insert("Take a Picture")
     h_third_entry = menu_handler.insert("Search for object in division")
-    h_fourth_entry = menu_handler.insert("Is Someone Home?")
+    #h_fourth_entry = menu_handler.insert("Is Someone Home?")
     updateMissionDescription("Waiting for a Mission to start",mission_location=location)
 
             ############################ Move to missions ##########################################
@@ -653,10 +679,10 @@ def main():
     ############################### Is someone home missions #######################
 
 
-    entry = menu_handler.insert("Is someone home?", parent=h_fourth_entry,
-                                callback=partial(searchForPerson,
-                                                 goal_publisher=goal_publisher,
-                                                 camera_listener=CameraListener2))
+    # entry = menu_handler.insert("Is someone home?", parent=h_fourth_entry,
+    #                             callback=partial(searchForPerson,
+    #                                              goal_publisher=goal_publisher,
+    #                                              camera_listener=CameraListener2))
     
     makeMenuMarker("marker1")
 
