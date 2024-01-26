@@ -72,14 +72,14 @@ def main():
     p.position = Point(x=1.891458, y=-1.630400, z=0.389908)
     q = quaternion_from_euler(0, 0, 0)  # From euler angles (rpy) to quaternion
     p.orientation = Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
-    poses['on_living_room_table2'] = {'pose': p}
+    poses['on_living_room_table'] = {'pose': p}
 
     # on living room table 2
     p = Pose()
-    p.position = Point(x=1.952598, y=-1.580895, z=0.365747)
+    p.position = Point(x=1.141329, y=-1.720264, z=0.365747)
     q = quaternion_from_euler(0, 0, 0)  # From euler angles (rpy) to quaternion
     p.orientation = Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
-    poses['on_living_room_table'] = {'pose': p}
+    poses['on_living_room_table2'] = {'pose': p}
 
 
     # on bedroom table
