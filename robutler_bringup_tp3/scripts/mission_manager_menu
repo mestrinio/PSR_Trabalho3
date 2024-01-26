@@ -572,7 +572,75 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
     print("Mission planning logic after taking a picture.")
     return
 
+def searchForLaptop(feedback,goal_publisher, camera_listener):
+    #MoveTo start
+    location="bedroom"
+    print('First, moving to ' + location)
+    updateMissionDescription("Moving to the {} to check if the laptop is there".format(location), mission_location=location)
+    p1 = Pose()
+    p1.position = Point(x=3.172562, y=-0.001934, z=-0.001006)
+    q1 = quaternion_from_euler(0, 0.003169, -0.292047)  # From euler angles (rpy) to quaternion
+    p1.orientation = Quaternion(x=q1[0], y=q1[1], z=q1[2], w=q1[3])
 
+    #1 localização
+
+    ps1 = PoseStamped()
+    ps1.pose = p1
+    ps1.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
+
+    goal_publisher.publish(ps1)
+
+    # TODO know when move is finished
+    try:
+        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+    except:
+        print('Timeout waiting for moveto')
+        # TODO
+        return
+
+    #UpdateMissionDescription("Mission complete!! Uff")
+    print('move base completed goal with result ' + str(result_msg))
+
+    
+    # Initialize CameraListener within the takeAPicture function
+    camera_listener_instance = camera_listener(location,file_nmbr=1)
+
+    scanlaptop_message = "Scanning for laptop presence"
+    updateMissionDescription(scanlaptop_message, mission_location=location)
+    # Wait for some time to ensure that the CameraListener has captured the image
+    rospy.sleep(5)
+    
+    # Load a pretrained YOLOv8n model
+    model = YOLO('yolov8n.pt')
+
+    source = '../person_laptop/laptop.png'
+
+    # Run inference on 'IMAGE1' with arguments
+    model.predict(source, save=True, imgsz=320, conf=0.5, save_txt = True)
+
+    filename = "/home/mestre/catkin_ws/src/TP3/PSR_Trabalho3/robutler_bringup_tp3/person_laptop/runs/detect/predict/labels/laptop.txt"
+
+    with open(filename, "r") as f:
+        first_two_characters = f.readline()[:2]
+        print(first_two_characters)
+
+    
+    if first_two_characters == "63":
+        laptop_message = "I have successfully detected the laptop!!!"
+        updateMissionDescription(laptop_message)
+        rospy.sleep(5)
+        funny_message = "Someone has been playing Counter Strike (and they're even bigger bots than I am)"
+        updateMissionDescription(funny_message)
+    else:
+        nolaptop_message = "There is no laptop on the desk"
+        updateMissionDescription(nolaptop_message)
+        
+        
+    rospy.sleep(2)
+    end_laptop_message = "I have completed one more mission, what's next my Master?"
+    updateMissionDescription(end_laptop_message)
+
+    return
 
 def main():
     global server

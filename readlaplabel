@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+
+filename = "./runs/detect/predict2/labels/laptop.txt"
+
+with open(filename, "r") as f:
+    first_two_characters = f.readline()[:2]
+    print(first_two_characters)
