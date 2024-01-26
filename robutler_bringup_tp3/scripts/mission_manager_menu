@@ -17,7 +17,7 @@ from sensor_msgs.msg import Image
 import cv2
 from visualization_msgs.msg import Marker
 from color_detection_copy import ObjectDetectionNode
-from ultralytics import YOLO
+#from ultralytics import YOLO
 
 
 
@@ -28,6 +28,7 @@ h_first_entry = 0
 h_second_entry = 0 ###
 h_third_entry = 0 ###
 h_fourth_entry = 0 ####
+h_fifth_entry = 0 #### 
 h_mode_last = 0
 
 current_mission_marker = None
@@ -205,14 +206,13 @@ class CameraListener:
                 rospy.logerr("Error processing image: {}".format(e))
 
 class CameraListener2:
-    def __init__(self,location,file_nmbr):
+    def __init__(self,location):
         self.location=location
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/camera/rgb/top_image_raw", Image, self.image_callback)
         self.image_saved = False
-        self.file_nmbr = file_nmbr
 
-    def image_callback(self, data):
+    def image_callback(self, data,file_nmbr):
         if hasattr(self, 'image_saved') and not self.image_saved:
             try:
                 cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
@@ -220,9 +220,9 @@ class CameraListener2:
                 rospack = RosPack()
                 package_path = rospack.get_path(package_name)
                 directory_path = os.path.join(package_path, "person_laptop")                            
-                if self.file_nmbr == 1:                
+                if file_nmbr == 1:                
                     file_name = "Person1.png"
-                elif self.file_nmbr == 2:
+                elif file_nmbr == 2:
                     file_name = "Person2.png"
                 else:
                     file_name = "Person3.png"
@@ -232,6 +232,53 @@ class CameraListener2:
                 self.image_saved = True
             except Exception as e:
                 rospy.logerr("Error processing image: {}".format(e))
+
+class CameraListener3:
+    def __init__(self,location):
+        self.location=location
+        self.bridge = CvBridge()
+        self.image_sub = rospy.Subscriber("/camera/rgb/top_image_raw", Image, self.image_callback)
+        self.image_saved = False
+
+    def image_callback(self, data):
+        if hasattr(self, 'image_saved') and not self.image_saved:
+            try:
+                cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+                package_name = "robutler_bringup_tp3"
+                rospack = RosPack()
+                package_path = rospack.get_path(package_name)
+                directory_path = os.path.join(package_path, "table_photos")                                          
+                file_name = "Table_photo_2.png"
+                os.chdir(directory_path)
+                cv2.imwrite(file_name, cv_image)
+                rospy.loginfo("Image saved successfully as: " + file_name + ".")
+                self.image_saved = True
+            except Exception as e:
+                rospy.logerr("Error processing image: {}".format(e))
+
+class CameraListener4:
+    def __init__(self,location):
+        self.location=location
+        self.bridge = CvBridge()
+        self.image_sub = rospy.Subscriber("/camera/rgb/top_image_raw", Image, self.image_callback)
+        self.image_saved = False
+
+    def image_callback(self, data):
+        if hasattr(self, 'image_saved') and not self.image_saved:
+            try:
+                cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+                package_name = "robutler_bringup_tp3"
+                rospack = RosPack()
+                package_path = rospack.get_path(package_name)
+                directory_path = os.path.join(package_path, "person_laptop")                                          
+                file_name = "laptop.png"
+                os.chdir(directory_path)
+                cv2.imwrite(file_name, cv_image)
+                rospy.loginfo("Image saved successfully as: " + file_name + ".")
+                self.image_saved = True
+            except Exception as e:
+                rospy.logerr("Error processing image: {}".format(e))
+
 
 
 def takeAPicture(feedback, x, y, z, R, P, Y, location, goal_publisher, camera_listener):
@@ -295,7 +342,7 @@ def moveTo(feedback, x, y, z, R, P, Y, location, goal_publisher):
 
     # TODO know when move is finished
     try:
-        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=60)
+        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
     except:
         print('Timeout waiting for moveto')
         # TODO
@@ -307,7 +354,8 @@ def moveTo(feedback, x, y, z, R, P, Y, location, goal_publisher):
     updateMissionDescription(complete_message, mission_location=location)
 
 def searchForObject(feedback, x, y, z, R, P, Y, location, goal_publisher):
-    
+    #1 aligning myself for the picture
+    #2 ficar certinho
     print('Called searching for objects in ' + location)
     updateMissionDescription("Searching for objects in the {}".format(location), mission_location=location)
     
@@ -334,28 +382,16 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, goal_publisher):
     print('Move base completed goal with result ' + str(result_msg))
     
     # Start the object detection node
-    duration = rospy.Duration(5.0)
-    object_detection_node = ObjectDetectionNode()
+    duration = 5.0  # Set the duration for color detection
+    object_detection_node = ObjectDetectionNode(duration)
+    object_detection_node.start_detection()
 
-    object_detection_node.shutdown_timer = rospy.Time.now() + duration 
-
-    try:
-        rospy.spin()
-    except KeyboardInterrupt:
-        cv2.destroyAllWindows()
-
-        #########################WORKING ON THIS PART NEXT###########################
-
-
-    # Wait for some time to allow the object detection to run
-    #rospy.sleep(10)  # Adjust this duration based on your requirements
-    
     # Access the object count from the object detection node
-    object_contours = ObjectDetectionNode().object_contours
-    print ("OBJETOS AQUI" + object_contours)
-    
+    object_contours = object_detection_node.object_contours
+    print("OBJETOS AQUI", object_contours)
+
     # Display the result in the mission description
-    complete_message = f"Mission complete! Found {'X'} objects in {location}."
+    complete_message = f"Mission complete! Found {(object_contours)} objects in {location}."
     updateMissionDescription(complete_message, mission_location=location)
 
     # Optionally, perform additional logic after object detection
@@ -366,6 +402,7 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, goal_publisher):
     return
 
 
+#Search for person Yolo only
 def searchForPerson(feedback,goal_publisher, camera_listener):
     #MoveTo start
     location="kitchen"
@@ -620,26 +657,106 @@ def searchForLaptop(feedback,goal_publisher, camera_listener):
 
     filename = "/home/mestre/catkin_ws/src/TP3/PSR_Trabalho3/robutler_bringup_tp3/person_laptop/runs/detect/predict/labels/laptop.txt"
 
-    with open(filename, "r") as f:
-        first_two_characters = f.readline()[:2]
-        print(first_two_characters)
+    try:
+        with open(filename, "r") as f:
+            first_two_characters = f.readline()[:2]
+            print(first_two_characters)
 
-    
-    if first_two_characters == "63":
-        laptop_message = "I have successfully detected the laptop!!!"
-        updateMissionDescription(laptop_message)
-        rospy.sleep(5)
-        funny_message = "Someone has been playing Counter Strike (and they're even bigger bots than I am)"
-        updateMissionDescription(funny_message)
-    else:
+
+        if first_two_characters == "63":
+            laptop_message = "I have successfully detected the laptop!!!"
+            updateMissionDescription(laptop_message)
+            rospy.sleep(5)
+            funny_message = "Someone has been playing Counter Strike (and they're even bigger bots than I am)"
+            updateMissionDescription(funny_message)
+        else:
+            nolaptop_message = "There is no laptop on the desk"
+            updateMissionDescription(nolaptop_message)
+
+    except:
         nolaptop_message = "There is no laptop on the desk"
         updateMissionDescription(nolaptop_message)
-        
-        
     rospy.sleep(2)
     end_laptop_message = "I have completed one more mission, what's next my Master?"
     updateMissionDescription(end_laptop_message)
 
+
+def isTableClean(feedback, x, y, z, R, P, Y, location, goal_publisher, camera_listener):
+    print('Moving to the table to see if it is clean')
+    updateMissionDescription("Moving to the table to see if it is clean", mission_location=location)
+    p = Pose()
+    p.position = Point(x=x, y=y, z=z)
+    q = quaternion_from_euler(R, P, Y)  # From euler angles (rpy) to quaternion
+    p.orientation = Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
+
+    ps = PoseStamped()
+    ps.pose = p
+    ps.header = Header(frame_id='map', stamp=rospy.Time.now())
+
+    print('Sending Goal move to ' + location)
+    goal_publisher.publish(ps)
+
+    # TODO know when move is finished
+    try:
+        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=80)
+    except:
+        print('Timeout waiting for moveto')
+        # TODO
+        return
+
+    #UpdateMissionDescription("Mission complete!! Uff")
+    print('move base completed goal with result ' + str(result_msg))
+
+    
+    # Use Camera_listerner_3
+    camera_listener_instance = camera_listener(location)
+
+    complete_message = "Checking if the table is clean!"
+    updateMissionDescription(complete_message, mission_location=location)
+    #Wait for some time to ensure that the CameraListener has captured the image
+    rospy.sleep(2)
+    
+    # Perform any additional processing or mission planning logic
+    print("Mission planning logic after taking a picture.")
+    #Images comparison
+    A = cv2.imread("../table_photos/Table_photo_1.png")
+    B = cv2.imread("../table_photos/Table_photo_2.png")
+
+    # Define ROI (adjust coordinates based on your specific scenario)
+    roi_start = (200, 200)
+    roi_end = (1800, 600)
+    roi_A = A[roi_start[0]:roi_end[0], roi_start[1]:roi_end[1]]
+    roi_B = B[roi_start[0]:roi_end[0], roi_start[1]:roi_end[1]]
+
+    # Draw rectangle on the original images
+    cv2.rectangle(A, roi_start, roi_end, color=(255, 0, 0), thickness=2)
+    cv2.rectangle(B, roi_start, roi_end, color=(255, 0, 0), thickness=2)
+
+    # Calculate error and similarity
+    errorL2 = cv2.norm(roi_A, roi_B, cv2.NORM_L2)
+    similarity = 1 - errorL2 / (roi_A.shape[0] * roi_A.shape[1])
+    print("Similarity =", similarity)
+
+    if similarity >= 0.85:
+        complete_message = "There aren't any object on the table\nIts clean boss!!"
+        updateMissionDescription(complete_message, mission_location=location)
+        print("TABLE IS CLEAN")
+    
+    else:
+        complete_message = "There are objects on the table...\nIt needs cleaning!!!"
+        updateMissionDescription(complete_message, mission_location=location)
+        print("TABLE WITH OBJECTS")
+    rospy.sleep(5)
+
+    finished_message = "Task completed, what do you want me to do next, Master?"
+    updateMissionDescription(finished_message, mission_location=location)
+
+    # Display images with rectangles
+    #cv2.imshow("Image A with ROI", A)
+    #cv2.imshow("Image B with ROI", B)
+    #cv2.imshow("ROI A", roi_A)
+    #cv2.imshow("ROI B", roi_B)
+    cv2.waitKey(0)
     return
 
 def main():
@@ -661,7 +778,14 @@ def main():
     h_first_entry = menu_handler.insert("Move to")
     h_second_entry = menu_handler.insert("Take a Picture")
     h_third_entry = menu_handler.insert("Search for object in division")
-    h_fourth_entry = menu_handler.insert("Is Someone Home?")
+    #h_fourth_entry = menu_handler.insert("Is Someone Home?")
+    h_fifth_entry = menu_handler.insert("Is table clean?",
+                                callback=partial(isTableClean,
+                                                 x=1.536717, y=0.002346, z=0,
+                                                 R=-0.000003, P=0.003185, Y=-1.565866,
+                                                 location='Living_room',
+                                                 goal_publisher=goal_publisher,
+                                                 camera_listener=CameraListener3))
     updateMissionDescription("Waiting for a Mission to start",mission_location=location)
 
             ############################ Move to missions ##########################################
@@ -728,34 +852,17 @@ def main():
     
     ############################### Search for object missions #######################
 
-
-    entry = menu_handler.insert("Kitchen", parent=h_third_entry,
-                                callback=partial(searchForObject,
-                                                x=2.987402, y=0.553971, z=0,
-                                                R=0, P=0.003182, Y=-0.620476,
-                                                location='Kitchen',
-                                                goal_publisher=goal_publisher))
-
-    entry = menu_handler.insert("Gym", parent=h_third_entry,
-                                callback=partial(searchForObject,
-                                                x=1.544719, y=0.655930, z=0,
-                                                R=0, P=0.003175, Y=1.103783,
-                                                location='Gym',
-                                                goal_publisher=goal_publisher))
     
-    entry = menu_handler.insert("Bedroom", parent=h_second_entry,
-                                callback=partial(searchForObject,
-                                                 x=-3.003071, y=-1.536944, z=0,
-                                                 R=0, P=0.003176, Y=2.376887,
-                                                 location='Bedroom',
-                                                 goal_publisher=goal_publisher))
+    # ##### PREENCHER COM O RESTO DOS OBJETOS
+    entry_laptop = menu_handler.insert("Laptop",parent=h_third_entry)
+    entry_blueball = menu_handler.insert("Blue Ball",parent=h_third_entry)
     
-    entry = menu_handler.insert("Living_Room", parent=h_second_entry,
-                                callback=partial(searchForObject,
-                                                 x=-0.049086, y=2.307656, z=0,
-                                                 R=0, P=0.003169, Y=-1.387612,
-                                                 location='Living_Room',
-                                                 goal_publisher=goal_publisher))
+    entry = menu_handler.insert("Bedroom", parent=entry_laptop,
+                                 callback=partial(searchForLaptop,
+                                                  goal_publisher=goal_publisher,                                                
+                                                  camera_listener=CameraListener4))
+    
+    
     
     ############################### Is someone home missions #######################
 
