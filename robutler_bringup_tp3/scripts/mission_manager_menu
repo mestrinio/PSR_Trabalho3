@@ -609,7 +609,7 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, goal_publisher):
     print("Mission planning logic after taking a picture.")
     return
 
-def searchForLaptop(feedback,goal_publisher, camera_listener):
+#def searchForLaptop(feedback,goal_publisher, camera_listener):
     #MoveTo start
     location="bedroom"
     print('First, moving to ' + location)
@@ -735,7 +735,7 @@ def isTableClean(feedback, x, y, z, R, P, Y, location, goal_publisher, camera_li
     print("Similarity =", similarity)
 
     if similarity >= 0.85:
-        complete_message = "There isn't any object on the table"
+        complete_message = "There aren't any object on the table\nIts clean boss!!"
         updateMissionDescription(complete_message, mission_location=location)
         print("TABLE IS CLEAN")
     
@@ -849,34 +849,17 @@ def main():
     
     ############################### Search for object missions #######################
 
-    ##### COLOCAR BEM AQUI NO MENU
-    entry = menu_handler.insert("Kitchen", parent=h_third_entry,
-                                callback=partial(searchForObject,
-                                                x=2.987402, y=0.553971, z=0,
-                                                R=0, P=0.003182, Y=-0.620476,
-                                                location='Kitchen',
-                                                goal_publisher=goal_publisher))
-
-    entry = menu_handler.insert("Gym", parent=h_third_entry,
-                                callback=partial(searchForObject,
-                                                x=1.544719, y=0.655930, z=0,
-                                                R=0, P=0.003175, Y=1.103783,
-                                                location='Gym',
-                                                goal_publisher=goal_publisher))
     
-    entry = menu_handler.insert("Bedroom", parent=h_second_entry,
-                                callback=partial(searchForObject,
-                                                 x=-3.003071, y=-1.536944, z=0,
-                                                 R=0, P=0.003176, Y=2.376887,
-                                                 location='Bedroom',
-                                                 goal_publisher=goal_publisher))
+    # ##### PREENCHER COM O RESTO DOS OBJETOS
+    # entry_laptop = menu_handler.insert("Laptop",parent=h_third_entry)
+    # entry_blueball = menu_handler.insert("Blue Ball",parent=h_third_entry)
     
-    entry = menu_handler.insert("Living_Room", parent=h_second_entry,
-                                callback=partial(searchForObject,
-                                                 x=-0.049086, y=2.307656, z=0,
-                                                 R=0, P=0.003169, Y=-1.387612,
-                                                 location='Living_Room',
-                                                 goal_publisher=goal_publisher))
+    # entry = menu_handler.insert("Bedroom", parent=entry_laptop,
+    #                             callback=partial(searchForLaptop,
+    #                                              goal_publisher=goal_publisher,                                                
+    #                                              camera_listener=CameraListener4))
+    
+    
     
     ############################### Is someone home missions #######################
 
