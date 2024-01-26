@@ -28,21 +28,22 @@
 <!-- PROJECT LOGO -->
 <br />
 
-  <a href="https://github.com/mestrinio/Avaliacao2-PSR/graphs/">
+  <a href="https://github.com/mestrinio/PSR_Trabalho3/graphs/">
     <img src="images/logo.png" alt="Logo" width="550" height="350">
   </a>
 
-<h3 align="center">PSR - Trabalho Prático 2</h3>
+<h3 align="center">PSR - Trabalho Prático 3</h3>
+<h3 align="center">THOR - Trully Hardworking Outstanding Robot</h3>
 
 <h2><b> Repository Owner: Pedro Martins 103800
-<br>Collaborators: Gustavo Reggio 118485 & Tomás Taxa 121863 </b></h2>
+<br>Collaborators: Luís Fernandes 103085 & Afonso Pereira XXXXX </b></h2>
 
   <p align="center">
-    This repository was created for evaluation @ Robotic Systems Programming "PSR 23-24 Trabalho prático 2".
+    This repository was created for evaluation @ Robotic Systems Programming "PSR 23-24 Trabalho prático 3".
     <br />
-    <!-- <a href="https://github.com/mestrinio/Avaliacao2-PSR"><strong>Explore the Wiki »</strong></a> -->
+    <!-- <a href="https://github.com/mestrinio/PSR_Trabalho3"><strong>Explore the Wiki »</strong></a> -->
     <br >
-    <a href="https://github.com/mestrinio/Avaliacao2-PSR/issues"> <u>Make Suggestion</u> </a>
+    <a href="https://github.com/mestrinio/PSR_Trabalho3/issues"> <u>Make Suggestion</u> </a>
   </p>
 </div>
 <br>
@@ -80,7 +81,7 @@
 <img  src="images/drawing1.png" alt="colorsegmenter" height="400">
 </div>
 <br>
-This assignment was developed for Robotic Systems Programming. It is an Augmented Reality Painting program, which uses the computer webcam to detect a specific chosen color, and with that, draw on the exact position in a white canvas. This uses Python's OpenCV and includes some advanced features requested by the teacher.
+This assignment was developed for Robotic Systems Programming. It uses a simulated environment to program a simulated robot, model TurtleBot3. The bot is meant to be accomplish a certain number of missions, including detection of objects or people, using image similarity or database comparison (with YOLOv8), and other navigation and localization missions. The model has been modified to have similarities with the "Thor" god character. The program uses ROS and its programmed with Python language and OpenCV library.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -102,63 +103,65 @@ This assignment was developed for Robotic Systems Programming. It is an Augmente
 
 
 <!-- Objectives -->
-## Objectives
-### Color Segmenter
-The color segmenter program asks the user what parameters for color detection he wants. This part captures the webcam and shows 6 trackbars on the image so that the user can define the right color detection for whatever object he wants to use for painting. Then saves these values on a JSON file.
+## Objectives/Missions
+### Robot configuration (Objective)
 
+The robot model is based on Turtlebot3 Waffle Pi but has been customized to fit the Thor theme. Colors and 3D features have been altered and included to match Thor's outfit style, and his hammer. An extra camera has been added to the top of the model.
 
+<br>
 
+### Scenery Mapping (Objective)
 
-### AR Paint
+A previous mapping of the simulated house has been done using the procedure taught in class.................
 
-The actual painting part of the program should accomplish the following requirements:
+<br>
 
-#### SETUP
-- Read the arguments on the command line to path the json file;
-- Read the json file specified in the path, that has the color limits;
-- Setup the webcam's capture;
-- Create a white canvas to draw on, which has the same size as the incoming capture video of the webcam;
+### Robot navigation (Mission)
 
-#### CONTINUOUS
-- Record and show each webcam's frame;
-- Process the incoming video feed with a mask containing the desired pixel color values (and show the mask on another window);
-- Process the mask to obtain only the biggest object, and show it;
-- Calculate that object's centroid (and mark it as a red cross 'X' on the webcam's feed);
-- Use that centroid to paint a circle or a line in the white canvas, with the chosen characteristics for the painting;
-***
+This robot features 4 different navigation modules:
+- Teleop driving (incrementation of velocity values, linear and angular)
+- Teleop videogame driving (WASD controls the instantaneous velocities)
+- Autonomous point-to-point at specific location selected in RViz
+- Autonomous point-to-point at specific room selected in mission manager.
 
-#### Advanced features
-##### Feature 1 - Use Shake Protection
-The program is designed to draw lines between centroids instead of circles in each centroid. But sometimes errors in the color detection can happen, and detections on random points of the camera happen, resulting in enormous lines across the canvas. Shake protection detects if the distance between lines is too big to be right, and prevents the drawing. The program should also function using the mouse clicks to draw when either the detections are failing, or the user chooses to do it.
+<br>
 
-##### Feature 2 - Use webcam feed as canvas
-The program should allow the switch in the canvas choice, between the white canvas and the actual webcam frames.
+### Object spawning in scenery (Objective)
 
-##### Feature 3 - Draw shapes
-The program should allow the drawing of shapes on the canvas, rectangles, circles and ellipses. To do so, the user shall press & hold the corresponding key of the shape, to start drawing it, and release it when finishing the size of the shape.
+It is possible to spawn different objects in different positions using a specific script.
+
+<br>
+
+### Object Detection (Missions)
+
+THOR has it's own object detection features, which include usage of color and shape to detect objects using it's cameras.
+
+#### Specific Missions
+
+A more detailed view of the missions and features is explained later on this guide.
 
 
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This is a Python file, so it should be ran in a dedicated terminal running color_segmenter.py, which is the file that runs the first part of the program, to select the desired values for detections. The second and main part of the program, ar_paint.py, runs the painting part and all it's features, but it has some arguments which will be explained later but can be seen using -h argument.
-
-```
-./color_segmenter.py
-./ar_paint.py -h
-```
-
-
+To use THOR, you need to have ROS properly installed on your system (<a href="http://wiki.ros.org/ROS/Installation"> <u>ROS Installation</u> </a>). Furthermore, you must have turtlebot3 original model associated (<a href="https://www.turtlebot.com/turtlebot3/"> <u>Turtlebot3 Models</u> </a>). Lastly, the house needs to be downloaded to the previously made catkin_ws/src directory (```git clone https://github.com/aws-robotics/aws-robomaker-small-house-world```) and some other packages must be installed on python for everything to work.
+IMPORTANT NOTE: YOLOv8 from ultralytics occupies a lot of storage so be sure to have at least 20 GB free to use.
 
 ## Setup
-<h3><b>Libraries</b></h3>
-
-To run the program, the following libraries should be installed:
+<h3><b>Installs</b></h3>
 
 ```
+sudo apt-get install ros-noetic-map-server
+sudo apt-get install ros-noetic-amcl
+sudo apt-get install ros-noetic-navigation
+sudo apt-get install ros-<your-ros-distro>-cv-bridge
+sudo apt-get install ros-<your-ros-distro>-image-transport
 sudo apt install python3 python3-tk
-pip install opencv-python
 pip install numpy
+pip install ultralytics
+pip install gTTS
+pip install playsound
+pip install opencv-python
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -166,88 +169,51 @@ pip install numpy
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-### How it works
+### Launch simulation (Follow order)
 
-Run color_segmenter.py:
-- Select desired values for color detection using the trackbars;
-- Use the masked image to understand if the values are as desired;
-- Hit 'W' to save the values to the JSON file.
+```
+roslaunch robutler_bringup_tp3 gazebo.launch
+roslaunch robutler_bringup_tp3 bringup.launch
+rosrun robutler_bringup_tp3 mission_manager_menu
+```
 
-<br>
-<br>
-<div align="center">
-<img  src="images/colorsegmenter.png" alt="colorsegmenter" height="">
-</div>
-<div align="center">Choose your detection values then hit 'W' to save them</div>
-<br>
-<br>
-
-***
-
-Arguments when running ar_paint.py:
-- -h (Calls for help argument, that explains the other arguments used);
-- -usp (Activates the usage of shake protection).
-- -j (Insert the full path to the JSON file created in color_segmenter.py)
-
-<br>
-<div align="center">
-<img  src="images/runarpaint.png" alt="runarpaint" height="">
-</div>
-<div align="center">Specify the full JSON file's path after -j and write -usp if you want to activate shake protection</div>
-<br>
-<br>
-<br>
-
-Run ar_paint.py:
-- A rememberal for the hotkeys to use during the program should pop-up;
-
-<br>
-<div align="center">
-<img  src="images/tkinter.png" alt="tkinter" height="300">
-</div>
-<div align="center">Keybindings window pop-up</div>
-<br>
-<br>
-
-- Drawing in the blank canvas should start happening when detecting the color on the camera;
-- Use the hotkeys to change the brush characteristics, switch to drawing on the webcam capture, draw using the mouse and clean or save the current canvas;
-
-<br>
-<div align="center">
-<img  src="images/drawings.png" alt="drawings" height="300">
-</div>
-<div align="center">Start drawing!</div>
+Navigation (choose one):
+```
+rosrun robutler_bringup_tp3 teleop_key
+rosrun robutler_bringup_tp3 teleop_keypressteste
+```
 
 ##### Keybindings:
-- 'R' to change brush color to <p style="color: rgb(255,0,0)">RED</p>
-- 'G' to change brush color to <p style="color: rgb(0,255,0)">GREEN</p>
-- 'B' to change brush color to <p style="color: rgb(0,0,255)">BLUE</p>
-- 'P' to change brush color to <p style="color: rgb(0,0,0)">BLACK</p>
-- '+' to increase brush size
-- '-' to decrease brush size
-- 'X' to use rubber
-- 'C' to clear the canvas
-- 'W' to save the current canvas to an image file
-- 'J' to switch between the white canvas and the webcam
-- 'M' start using the mouse to draw
-- 'I' stop using the mouse to draw
-- 'Q' shutdown the program
+- 'W' to move forwards
+- 'S' to move backwards
+- 'D' to turn right
+- 'A' to turn left 
+
+<br>
+Other navigations:
+
+- Using RViz select option to move to 2d point.
+- Right press the balloon over THOR to open missions menu, and select option to move to desired room.
+
+***
+OBJECT SPAWN, DETECTION AND SPECIFIC MISSIONS LEFT HERE.
+
 
 ***
 <br>
 
 <!-- CONTACT -->
 ## Contact
-Gustavo Reggio - gustavo.reggio@ua.pt
+Luís Fernandes - xxxx@ua.pt
+
+
+Nuno Afonso Pereira - xxxx@ua.pt
 
 
 Pedro Martins - pedro.mestre@ua.pt
 
 
-Tomás Taxa - tomas.taxa@ua.pt
-
-
-Project Link: [Trabalho Prático 2](https://github.com/mestrinio/Avaliacao2-PSR)
+Project Link: [Trabalho Prático 3](https://github.com/mestrinio/PSR_Trabalho3)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -265,5 +231,5 @@ Project Link: [Trabalho Prático 2](https://github.com/mestrinio/Avaliacao2-PSR)
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/RobutlerAlberto/RobutlerAlberto.svg?style=for-the-badge
-[contributors-url]: https://github.com/mestrinio/Avaliacao2-PSR/graphs/contributors
+[contributors-url]: https://github.com/mestrinio/PSR_Trabalho3/graphs/contributors
 [product-screenshot]: docs/logo.png
