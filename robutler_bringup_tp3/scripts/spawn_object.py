@@ -113,6 +113,18 @@ def main():
     # add object sphere_Y (Yellow Sphere)
     f = open(package_path + 'sphere_y/model.sdf', 'r')
     objects['sphere_y'] = {'name': 'sphere_y', 'sdf': f.read()}
+    
+    # add object sphere_b (Blue Sphere)
+    f = open(package_path + 'sphere_b/model.sdf', 'r')
+    objects['sphere_b'] = {'name': 'sphere_b', 'sdf': f.read()}
+
+    # add object cube_b (Blue cube)
+    f = open(package_path + 'cube_b/model.sdf', 'r')
+    objects['cube_b'] = {'name': 'cube_b', 'sdf': f.read()}
+
+    # add object cube_r (Red cube)
+    f = open(package_path + 'cube_r/model.sdf', 'r')
+    objects['cube_r'] = {'name': 'cube_r', 'sdf': f.read()}
 
     # add object person_standing
     f = open(package_path + 'person_standing/model.sdf', 'r')
