@@ -314,6 +314,42 @@
   <link name="top_camera_rgb_optical_frame"/>
 
 
+  <!-- CAMARA -->
+
+  <joint name="toptop_camera_joint" type="fixed">
+    <origin xyz="0.035 0 0.6" rpy="0 0 0"/>
+    <parent link="antena_link"/>
+    <child link="toptop_camera_link"/>
+  </joint>
+
+  <link name="toptop_camera_link">
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.015 0.030 0.027"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="toptop_camera_rgb_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="toptop_camera_link"/>
+    <child link="toptop_camera_rgb_frame"/>
+  </joint>
+  <link name="toptop_camera_rgb_frame"/>
+
+  <joint name="toptop_camera_rgb_optical_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="-1.57 0 -1.57"/>
+    <parent link="toptop_camera_rgb_frame"/>
+    <child link="toptop_camera_rgb_optical_frame"/>
+  </joint>
+  <link name="toptop_camera_rgb_optical_frame"/>
+
+
+
+
+
+
 
 
 

@@ -260,7 +260,7 @@ class CameraListener4:
     def __init__(self,location):
         self.location=location
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("/camera/rgb/top_image_raw", Image, self.image_callback)
+        self.image_sub = rospy.Subscriber("/camera/rgb/toptop_image_raw", Image, self.image_callback)
         self.image_saved = False
 
     def image_callback(self, data):
@@ -615,8 +615,8 @@ def searchForLaptop(feedback,goal_publisher, camera_listener):
     print('First, moving to ' + location)
     updateMissionDescription("Moving to the {} to check if the laptop is there".format(location), mission_location=location)
     p1 = Pose()
-    p1.position = Point(x=3.172562, y=-0.001934, z=-0.001006)
-    q1 = quaternion_from_euler(0, 0.003169, -0.292047)  # From euler angles (rpy) to quaternion
+    p1.position = Point(x=-8.115748, y=1.139848, z=-0.001006)
+    q1 = quaternion_from_euler(-0.000003, 0.003169, 2.422705)  # From euler angles (rpy) to quaternion
     p1.orientation = Quaternion(x=q1[0], y=q1[1], z=q1[2], w=q1[3])
 
     #1 localização
@@ -640,12 +640,12 @@ def searchForLaptop(feedback,goal_publisher, camera_listener):
 
     
     # Initialize CameraListener within the takeAPicture function
-    camera_listener_instance = camera_listener(location,file_nmbr=1)
+    camera_listener_instance = camera_listener(location)
 
     scanlaptop_message = "Scanning for laptop presence"
     updateMissionDescription(scanlaptop_message, mission_location=location)
     # Wait for some time to ensure that the CameraListener has captured the image
-    rospy.sleep(5)
+    rospy.sleep(3)
     
     # Load a pretrained YOLOv8n model
     model = YOLO('yolov8n.pt')
@@ -665,20 +665,20 @@ def searchForLaptop(feedback,goal_publisher, camera_listener):
 
         if first_two_characters == "63":
             laptop_message = "I have successfully detected the laptop!!!"
-            updateMissionDescription(laptop_message)
+            updateMissionDescription(laptop_message,mission_location=location)
             rospy.sleep(5)
             funny_message = "Someone has been playing Counter Strike (and they're even bigger bots than I am)"
-            updateMissionDescription(funny_message)
+            updateMissionDescription(funny_message,mission_location=location)
         else:
             nolaptop_message = "There is no laptop on the desk"
-            updateMissionDescription(nolaptop_message)
+            updateMissionDescription(nolaptop_message,mission_location=location)
 
     except:
         nolaptop_message = "There is no laptop on the desk"
-        updateMissionDescription(nolaptop_message)
-    rospy.sleep(2)
+        updateMissionDescription(nolaptop_message,mission_location=location)
+    rospy.sleep(4)
     end_laptop_message = "I have completed one more mission, what's next my Master?"
-    updateMissionDescription(end_laptop_message)
+    updateMissionDescription(end_laptop_message,mission_location=location)
 
 
 def isTableClean(feedback, x, y, z, R, P, Y, location, goal_publisher, camera_listener):
