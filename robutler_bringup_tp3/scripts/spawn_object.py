@@ -16,7 +16,7 @@ def main():
     # -------------------------------
     # Initialization
     # -------------------------------
-    parser = argparse.ArgumentParser(description='Script to compute perfect numbers.')
+    parser = argparse.ArgumentParser(description='Script to spawn objects in gazebo.')
     parser.add_argument('-l', '--location', type=str, help='', required=False,
                         default='on_bed')
     parser.add_argument('-o', '--object', type=str, help='', required=False,
@@ -84,7 +84,7 @@ def main():
 
     # on bedroom table
     p = Pose()
-    p.position = Point(x=-8.900804, y=1.904787, z=0.743650)
+    p.position = Point(x=-8.903911, y=1.541628, z=0.743650)
     q = quaternion_from_euler(0, 0, 1.562233)  # From euler angles (rpy) to quaternion
     p.orientation = Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
     poses['on_bedroom_table'] = {'pose': p}

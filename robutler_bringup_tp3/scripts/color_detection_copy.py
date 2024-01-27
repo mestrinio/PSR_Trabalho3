@@ -71,7 +71,7 @@ class ObjectDetectionNode:
 
     def image_callback(self, data):
         try:
-            cv_image = self.bridge.imgmsg_to_cv2(data, 'bgr8')
+            cv_image = "path to image"
         except CvBridgeError as e:
             rospy.logerr(e)
             return
