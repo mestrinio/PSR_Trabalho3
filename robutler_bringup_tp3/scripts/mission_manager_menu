@@ -18,6 +18,7 @@ import cv2
 import numpy as np
 from visualization_msgs.msg import Marker
 from color_detection_copy import ObjectDetectionNode
+import time
 #from ultralytics import YOLO
 
 
@@ -351,6 +352,29 @@ class CameraListener5:
             except Exception as e:
                 rospy.logerr("Error processing image: {}".format(e))
 
+class CameraListener6:
+    def __init__(self,location):
+        self.location=location
+        self.bridge = CvBridge()
+        self.image_sub = rospy.Subscriber("/camera/rgb/top_image_raw", Image, self.image_callback)
+        self.image_saved = False
+
+    def image_callback(self, data):
+        if hasattr(self, 'image_saved') and not self.image_saved:
+            try:
+                cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+                package_name = "robutler_bringup_tp3"
+                rospack = RosPack()
+                package_path = rospack.get_path(package_name)
+                directory_path = os.path.join(package_path, "object_detec")                                          
+                file_name = "object_detec.png"
+                os.chdir(directory_path)
+                cv2.imwrite(file_name, cv_image)
+                rospy.loginfo("Image saved successfully as: " + file_name + ".")
+                self.image_saved = True
+            except Exception as e:
+                rospy.logerr("Error processing image: {}".format(e))
+
 
 
 def takeAPicture(feedback, x, y, z, R, P, Y, location, goal_publisher, camera_listener):
@@ -425,11 +449,26 @@ def moveTo(feedback, x, y, z, R, P, Y, location, goal_publisher):
     complete_message = "Mission complete!! Uff"
     updateMissionDescription(complete_message, mission_location=location)
 
-def searchForObject(feedback, x, y, z, R, P, Y, location, goal_publisher):
-    #1 aligning myself for the picture
-    #2 ficar certinho
-    print('Called searching for objects in ' + location)
-    updateMissionDescription("Searching for objects in the {}".format(location), mission_location=location)
+def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publisher, camera_listener):
+    
+    # RED mask
+    lower_red = np.array([0, 100, 100])  
+    upper_red = np.array([5, 255, 255])   
+    # BLUE mask
+    lower_blue = np.array([78,158,124])  # Acertos na deteção do blue das bolas 
+    upper_blue = np.array([138,255,255])  
+
+    is_ball = ball
+    
+    
+    
+    #MoveTo start
+    print('First, moving to ' + location)
+    
+    if is_ball == True:
+        updateMissionDescription("Moving to the {} to check for {} balls".format(location,color), mission_location=location)
+    else: 
+        updateMissionDescription("Moving to the {} to check for {} cubes".format(location,color), mission_location=location)
     
     p = Pose()
     p.position = Point(x=x, y=y, z=z)
@@ -440,62 +479,9 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, goal_publisher):
     ps.pose = p
     ps.header = Header(frame_id='map', stamp=rospy.Time.now())
 
-    print('Sending Goal to ' + location)
+    print('Sending Goal move to ' + location)
     goal_publisher.publish(ps)
 
-    # TODO: Wait for move_base to finish
-    try:
-        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=60)
-    except:
-        print('Timeout waiting for move_base')
-        # TODO: Handle timeout
-        return
-
-    print('Move base completed goal with result ' + str(result_msg))
-    
-    # Start the object detection node
-    duration = 5.0  # Set the duration for color detection
-    object_detection_node = ObjectDetectionNode(duration)
-    object_detection_node.start_detection()
-
-    # Access the object count from the object detection node
-    object_contours = object_detection_node.object_contours
-    print("OBJETOS AQUI", object_contours)
-
-    # Display the result in the mission description
-    complete_message = f"Mission complete! Found {(object_contours)} objects in {location}."
-    updateMissionDescription(complete_message, mission_location=location)
-
-    # Optionally, perform additional logic after object detection
-    print("Additional logic after object detection.")
-
-    # Signal shutdown or proceed with the next mission
-    # rospy.signal_shutdown("Mission complete. Shutting down.")
-    return
-
-#IF RED DIFERENTE DE 0 THEN COKE CAN / fazer uma função aqui para ler uma foto em vez de uma camara
-
-
-#Search for person Yolo only
-#def searchForPerson(feedback,goal_publisher, camera_listener):
-    #MoveTo start
-    location="kitchen"
-    print('First, moving to ' + location)
-    updateMissionDescription("Moving to the {} to see if someone is there".format(location), mission_location=location)
-    p1 = Pose()
-    p1.position = Point(x=3.172562, y=-0.001934, z=-0.001006)
-    q1 = quaternion_from_euler(0, 0.003169, -0.292047)  # From euler angles (rpy) to quaternion
-    p1.orientation = Quaternion(x=q1[0], y=q1[1], z=q1[2], w=q1[3])
-
-    #1 localização
-
-    ps1 = PoseStamped()
-    ps1.pose = p1
-    ps1.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
-
-    print('First looking in : ' + location)
-    goal_publisher.publish(ps1)
-
     # TODO know when move is finished
     try:
         result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
@@ -504,255 +490,348 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, goal_publisher):
         # TODO
         return
 
-    #UpdateMissionDescription("Mission complete!! Uff")
     print('move base completed goal with result ' + str(result_msg))
-
-    
-    # Initialize CameraListener within the takeAPicture function
-    camera_listener_instance = camera_listener(location,file_nmbr=1)
-
-    complete_message = "Completed my first trip, lets look in another place"
-    updateMissionDescription(complete_message, mission_location=location)
-    # Wait for some time to ensure that the CameraListener has captured the image
-    rospy.sleep(5)
-
-    
-    #2 localização
-
-    location="living_room"
-    print('Now checking : ' + location)
-    updateMissionDescription("Moving to the {} to see if someone is there".format(location), mission_location=location)
-    p2 = Pose()
-    p2.position = Point(x=6.245474, y=-1.511837, z=-0.001006)
-    q2 = quaternion_from_euler(0 , 0.003169, 2.786313)  # From euler angles (rpy) to quaternion
-    p2.orientation = Quaternion(x=q2[0], y=q2[1], z=q2[2], w=q2[3])
-
-    ps2 = PoseStamped()
-    ps2.pose = p2
-    ps2.header = Header(frame_id='map', stamp=rospy.Time.now())
-
-    print('Now cheking : ' + location)
-    goal_publisher.publish(ps2)
-
-    # TODO know when move is finished
-    try:
-        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
-    except:
-        print('Timeout waiting for moveto')
-        # TODO
-        return
-
-    #UpdateMissionDescription("Mission complete!! Uff")
-    print('move base completed goal with result ' + str(result_msg))
-
-    
-    # Initialize CameraListener within the takeAPicture function
-    camera_listener_instance = camera_listener(location,file_nmbr=2)
-
-
-    complete_message = "I successfully analized this place aswell"
-    updateMissionDescription(complete_message, mission_location=location)
-    # Wait for some time to ensure that the CameraListener has captured the image
-    rospy.sleep(5)
-    
-    #3ª localização 
-    location="bedroom"
-    print('Now checking : ' + location)
-    updateMissionDescription("Moving to the {} to see if someone is there".format(location), mission_location=location)
-    p3 = Pose()
-    p3.position = Point(x=-2.405233, y=-0.992072, z=-0.001006)
-    q3 = quaternion_from_euler(0 , 0.003181, 2.740030)  # From euler angles (rpy) to quaternion
-    p3.orientation = Quaternion(x=q3[0], y=q3[1], z=q3[2], w=q3[3])
-
-    ps3 = PoseStamped()
-    ps3.pose = p3
-    ps3.header = Header(frame_id='map', stamp=rospy.Time.now())
-
-    print('Lastly cheking for people in : ' + location)
-    goal_publisher.publish(ps3)
-
-    # TODO know when move is finished
-    try:
-        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
-    except:
-        print('Timeout waiting for moveto')
-        # TODO
-        return
-
-    #UpdateMissionDescription("Mission complete!! Uff")
-    print('move base completed goal with result ' + str(result_msg))
-
-    
-    # Initialize CameraListener within the takeAPicture function
-    camera_listener_instance = camera_listener(location,file_nmbr=3)
-
-    complete_message = "All the photos are taken, lets check results"
-    updateMissionDescription(complete_message, mission_location=location)
-    #Wait for some time to ensure that the CameraListener has captured the image
-    rospy.sleep(5)
-
-    #Implementação do YOLO
-    model = YOLO('yolov8n.pt')
-
-    source1 = '../person_laptop/Person1.png'
-    source2 = '../person_laptop/Person2.png'
-    source3 = '../person_laptop/Person3.png'
-
-    # Run inference on 'IMAGE1' with arguments
-    model.predict(source1, save=True, imgsz=320, conf=0.5, save_txt = True)
-    print('MODELO11111111111111111111111')
-    rospy.sleep(1)
-    model.predict(source2, save=True, imgsz=320, conf=0.5, save_txt = True)
-    rospy.sleep(1)
-    print('Modelo2"2222222222222222222')
-    model.predict(source3, save=True, imgsz=320, conf=0.5, save_txt = True)
-    rospy.sleep(1)
-    print('MODELO3333333333333')
-
-    has_people=[]
-    rospy.sleep(3)
-    
-    path1 = "/home/mestre/catkin_ws/src/TP3/PSR_Trabalho3/robutler_bringup_tp3/person_laptop/runs/detect/predict/labels/Person1.txt"
-    
-    try:
-        with open(path1) as f:
-            c = f.read()
-            if not c:
-                has_people.append(False)
-            elif c[0] != '0':
-                has_people.append(False)
-            else:
-                has_people.append(True)
-    except:
-        has_people.append(False)
-            
-    
-    path2 = "/home/mestre/catkin_ws/src/TP3/PSR_Trabalho3/robutler_bringup_tp3/person_laptop/runs/detect/predict/labels/Person2.txt"
-    
-    try:  
-        with open(path2) as f:
-            c = f.read()
-            if not c:
-                has_people.append(False)
-            elif c[0] != '0':
-                has_people.append(False)
-            else:
-                has_people.append(True)
-    except:
-        has_people.append(False)
         
-        
-    path3 = "/home/mestre/catkin_ws/src/TP3/PSR_Trabalho3/robutler_bringup_tp3/person_laptop/runs/detect/predict/labels/Person3.txt"
-    
-    try:
-        with open(path3) as f:
-            c = f.read()
-            if not c:
-                has_people.append(False)
-            elif c[0] != '0':
-                has_people.append(False)
-            else:
-                has_people.append(True)
-    except:
-        has_people.append(False)
-
-    # Detections where? X,X,X
-    print(has_people)
-
-    complete_message = "According to my calculations..."
+    complete_message = "Reached my destination"
     updateMissionDescription(complete_message, mission_location=location)
     
-    rospy.sleep(2)
-    
-    rooms = ['Kitchen','Living room','Bedroom']
-    people_message = ""
-    if any(people for people in has_people):
-        for room, people in zip(rooms,has_people):
-            people_message = people_message + "The {} has {} people \n".format(room,"" if people else "no")
-            print(people_message)
-            updateMissionDescription(people_message, mission_location=location)
-            rospy.sleep(5)
-    else:
-        people_message = "There isn't anyone home!"
-        updateMissionDescription(people_message, mission_location=location)
-    
-
-    rospy.sleep(3)
-    updateMissionDescription("Checking for humans mission has been completed successfully")
-    # Perform any additional processing or mission planning logic
-    print("Mission planning logic after taking a picture.")
-    return
-
-#def searchForLaptop(feedback,goal_publisher, camera_listener):
-    #MoveTo start
-    location="bedroom"
-    print('First, moving to ' + location)
-    updateMissionDescription("Moving to the {} to check if the laptop is there".format(location), mission_location=location)
-    p1 = Pose()
-    p1.position = Point(x=-8.115748, y=1.139848, z=-0.001006)
-    q1 = quaternion_from_euler(-0.000003, 0.003169, 2.422705)  # From euler angles (rpy) to quaternion
-    p1.orientation = Quaternion(x=q1[0], y=q1[1], z=q1[2], w=q1[3])
-
-    #1 localização
-
-    ps1 = PoseStamped()
-    ps1.pose = p1
-    ps1.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
-
-    goal_publisher.publish(ps1)
-
-    # TODO know when move is finished
-    try:
-        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
-    except:
-        print('Timeout waiting for moveto')
-        # TODO
-        return
-
-    #UpdateMissionDescription("Mission complete!! Uff")
-    print('move base completed goal with result ' + str(result_msg))
-
-    
+    ##### Tirar a foto
     # Initialize CameraListener within the takeAPicture function
     camera_listener_instance = camera_listener(location)
 
-    scanlaptop_message = "Scanning for laptop presence"
-    updateMissionDescription(scanlaptop_message, mission_location=location)
+    if is_ball == True:
+        updateMissionDescription("Checking for {} balls".format(color), mission_location=location)
+    else: 
+        updateMissionDescription("Checking for {} cubes".format(color), mission_location=location)
+    
+    
+    #Deteção de Cor na foto
+
     # Wait for some time to ensure that the CameraListener has captured the image
     rospy.sleep(3)
+
+    cv_image= cv2.imread("../object_detec/object_detec.png")
+    rospy.sleep(3)
+
+
+    # Convert BGR to HSV
+    hsv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
     
-    # Load a pretrained YOLOv8n model
-    model = YOLO('yolov8n.pt')
 
-    source = '../person_laptop/laptop.png'
-
-    # Run inference on 'IMAGE1' with arguments
-    model.predict(source, save=True, imgsz=320, conf=0.5, save_txt = True)
-
-    filename = "/home/mestre/catkin_ws/src/TP3/PSR_Trabalho3/robutler_bringup_tp3/person_laptop/runs/detect/predict/labels/laptop.txt"
-
-    try:
-        with open(filename, "r") as f:
-            first_two_characters = f.readline()[:2]
-            print(first_two_characters)
-
-
-        if first_two_characters == "63":
-            laptop_message = "I have successfully detected the laptop!!!"
-            updateMissionDescription(laptop_message,mission_location=location)
-            rospy.sleep(5)
-            funny_message = "Someone has been playing Counter Strike (and they're even bigger bots than I am)"
-            updateMissionDescription(funny_message,mission_location=location)
+    # Use only the red mask in the image_callback function
+    if color == "red":
+        mask = cv2.inRange(hsv_image, lower_red, upper_red)
+    else:
+        mask = cv2.inRange(hsv_image, lower_blue, upper_blue)
+    
+    
+    # Find contours for red objects
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    
+    #gray = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+    #img = cv.medianBlur(img,5)
+    spheres = cv2.HoughCircles(mask, cv2.HOUGH_GRADIENT, dp=1.7, minDist=100,param2=50)
+    
+    object_count = 0
+    
+    if contours:
+        if is_ball:
+            if spheres is not None:
+                object_count = len(spheres)
+            updateMissionDescription("Found {} {} balls".format(object_count,color), mission_location=location)
         else:
-            nolaptop_message = "There is no laptop on the desk"
-            updateMissionDescription(nolaptop_message,mission_location=location)
+            object_count = len(contours)
+            if spheres is not None:
+                object_count = object_count - len(spheres)
+            updateMissionDescription("Found {} {} cubes".format(object_count,color), mission_location=location)
+        
+    
+    
+    rospy.sleep(3)
+    end_object_message = "Checking for objects type of mission done, what's my next one?"
+    updateMissionDescription(end_object_message,mission_location=location)
 
-    except:
-        nolaptop_message = "There is no laptop on the desk"
-        updateMissionDescription(nolaptop_message,mission_location=location)
-    rospy.sleep(4)
-    end_laptop_message = "I have completed one more mission, what's next my Master?"
-    updateMissionDescription(end_laptop_message,mission_location=location)
+
+
+#Search for person Yolo only
+# def searchForPerson(feedback,goal_publisher, camera_listener):
+#     #MoveTo start
+#     location="kitchen"
+#     print('First, moving to ' + location)
+#     updateMissionDescription("Moving to the {} to see if someone is there".format(location), mission_location=location)
+#     p1 = Pose()
+#     p1.position = Point(x=3.172562, y=-0.001934, z=-0.001006)
+#     q1 = quaternion_from_euler(0, 0.003169, -0.292047)  # From euler angles (rpy) to quaternion
+#     p1.orientation = Quaternion(x=q1[0], y=q1[1], z=q1[2], w=q1[3])
+
+#     #1 localização
+
+#     ps1 = PoseStamped()
+#     ps1.pose = p1
+#     ps1.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
+
+#     print('First looking in : ' + location)
+#     goal_publisher.publish(ps1)
+
+#     # TODO know when move is finished
+#     try:
+#         result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+#     except:
+#         print('Timeout waiting for moveto')
+#         # TODO
+#         return
+
+#     #UpdateMissionDescription("Mission complete!! Uff")
+#     print('move base completed goal with result ' + str(result_msg))
+
+    
+#     # Initialize CameraListener within the takeAPicture function
+#     camera_listener_instance = camera_listener(location,file_nmbr=1)
+
+#     complete_message = "Completed my first trip, lets look in another place"
+#     updateMissionDescription(complete_message, mission_location=location)
+#     # Wait for some time to ensure that the CameraListener has captured the image
+#     rospy.sleep(5)
+
+    
+#     #2 localização
+
+#     location="living_room"
+#     print('Now checking : ' + location)
+#     updateMissionDescription("Moving to the {} to see if someone is there".format(location), mission_location=location)
+#     p2 = Pose()
+#     p2.position = Point(x=6.245474, y=-1.511837, z=-0.001006)
+#     q2 = quaternion_from_euler(0 , 0.003169, 2.786313)  # From euler angles (rpy) to quaternion
+#     p2.orientation = Quaternion(x=q2[0], y=q2[1], z=q2[2], w=q2[3])
+
+#     ps2 = PoseStamped()
+#     ps2.pose = p2
+#     ps2.header = Header(frame_id='map', stamp=rospy.Time.now())
+
+#     print('Now cheking : ' + location)
+#     goal_publisher.publish(ps2)
+
+#     # TODO know when move is finished
+#     try:
+#         result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+#     except:
+#         print('Timeout waiting for moveto')
+#         # TODO
+#         return
+
+#     #UpdateMissionDescription("Mission complete!! Uff")
+#     print('move base completed goal with result ' + str(result_msg))
+
+    
+#     # Initialize CameraListener within the takeAPicture function
+#     camera_listener_instance = camera_listener(location,file_nmbr=2)
+
+
+#     complete_message = "I successfully analized this place aswell"
+#     updateMissionDescription(complete_message, mission_location=location)
+#     # Wait for some time to ensure that the CameraListener has captured the image
+#     rospy.sleep(5)
+    
+#     #3ª localização 
+#     location="bedroom"
+#     print('Now checking : ' + location)
+#     updateMissionDescription("Moving to the {} to see if someone is there".format(location), mission_location=location)
+#     p3 = Pose()
+#     p3.position = Point(x=-2.405233, y=-0.992072, z=-0.001006)
+#     q3 = quaternion_from_euler(0 , 0.003181, 2.740030)  # From euler angles (rpy) to quaternion
+#     p3.orientation = Quaternion(x=q3[0], y=q3[1], z=q3[2], w=q3[3])
+
+#     ps3 = PoseStamped()
+#     ps3.pose = p3
+#     ps3.header = Header(frame_id='map', stamp=rospy.Time.now())
+
+#     print('Lastly cheking for people in : ' + location)
+#     goal_publisher.publish(ps3)
+
+#     # TODO know when move is finished
+#     try:
+#         result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+#     except:
+#         print('Timeout waiting for moveto')
+#         # TODO
+#         return
+
+#     #UpdateMissionDescription("Mission complete!! Uff")
+#     print('move base completed goal with result ' + str(result_msg))
+
+    
+#     # Initialize CameraListener within the takeAPicture function
+#     camera_listener_instance = camera_listener(location,file_nmbr=3)
+
+#     complete_message = "All the photos are taken, lets check results"
+#     updateMissionDescription(complete_message, mission_location=location)
+#     #Wait for some time to ensure that the CameraListener has captured the image
+#     rospy.sleep(5)
+
+#     #Implementação do YOLO
+#     model = YOLO('yolov8n.pt')
+
+#     source1 = '../person_laptop/Person1.png'
+#     source2 = '../person_laptop/Person2.png'
+#     source3 = '../person_laptop/Person3.png'
+
+#     # Run inference on 'IMAGE1' with arguments
+#     model.predict(source1, save=True, imgsz=320, conf=0.5, save_txt = True)
+#     print('MODELO11111111111111111111111')
+#     rospy.sleep(1)
+#     model.predict(source2, save=True, imgsz=320, conf=0.5, save_txt = True)
+#     rospy.sleep(1)
+#     print('Modelo2"2222222222222222222')
+#     model.predict(source3, save=True, imgsz=320, conf=0.5, save_txt = True)
+#     rospy.sleep(1)
+#     print('MODELO3333333333333')
+
+#     has_people=[]
+#     rospy.sleep(3)
+    
+#     path1 = "/home/mestre/catkin_ws/src/TP3/PSR_Trabalho3/robutler_bringup_tp3/person_laptop/runs/detect/predict/labels/Person1.txt"
+    
+#     try:
+#         with open(path1) as f:
+#             c = f.read()
+#             if not c:
+#                 has_people.append(False)
+#             elif c[0] != '0':
+#                 has_people.append(False)
+#             else:
+#                 has_people.append(True)
+#     except:
+#         has_people.append(False)
+            
+    
+#     path2 = "/home/mestre/catkin_ws/src/TP3/PSR_Trabalho3/robutler_bringup_tp3/person_laptop/runs/detect/predict/labels/Person2.txt"
+    
+#     try:  
+#         with open(path2) as f:
+#             c = f.read()
+#             if not c:
+#                 has_people.append(False)
+#             elif c[0] != '0':
+#                 has_people.append(False)
+#             else:
+#                 has_people.append(True)
+#     except:
+#         has_people.append(False)
+        
+        
+#     path3 = "/home/mestre/catkin_ws/src/TP3/PSR_Trabalho3/robutler_bringup_tp3/person_laptop/runs/detect/predict/labels/Person3.txt"
+    
+#     try:
+#         with open(path3) as f:
+#             c = f.read()
+#             if not c:
+#                 has_people.append(False)
+#             elif c[0] != '0':
+#                 has_people.append(False)
+#             else:
+#                 has_people.append(True)
+#     except:
+#         has_people.append(False)
+
+#     # Detections where? X,X,X
+#     print(has_people)
+
+#     complete_message = "According to my calculations..."
+#     updateMissionDescription(complete_message, mission_location=location)
+    
+#     rospy.sleep(2)
+    
+#     rooms = ['Kitchen','Living room','Bedroom']
+#     people_message = ""
+#     if any(people for people in has_people):
+#         for room, people in zip(rooms,has_people):
+#             people_message = people_message + "The {} has {} people \n".format(room,"" if people else "no")
+#             print(people_message)
+#             updateMissionDescription(people_message, mission_location=location)
+#             rospy.sleep(5)
+#     else:
+#         people_message = "There isn't anyone home!"
+#         updateMissionDescription(people_message, mission_location=location)
+    
+
+#     rospy.sleep(3)
+#     updateMissionDescription("Checking for humans mission has been completed successfully")
+#     # Perform any additional processing or mission planning logic
+#     print("Mission planning logic after taking a picture.")
+#     return
+
+#Yolo Only
+# def searchForLaptop(feedback,goal_publisher, camera_listener):
+#     #MoveTo start
+#     location="bedroom"
+#     print('First, moving to ' + location)
+#     updateMissionDescription("Moving to the {} to check if the laptop is there".format(location), mission_location=location)
+#     p1 = Pose()
+#     p1.position = Point(x=-8.115748, y=1.139848, z=-0.001006)
+#     q1 = quaternion_from_euler(-0.000003, 0.003169, 2.422705)  # From euler angles (rpy) to quaternion
+#     p1.orientation = Quaternion(x=q1[0], y=q1[1], z=q1[2], w=q1[3])
+
+#     #1 localização
+
+#     ps1 = PoseStamped()
+#     ps1.pose = p1
+#     ps1.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
+
+#     goal_publisher.publish(ps1)
+
+#     # TODO know when move is finished
+#     try:
+#         result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+#     except:
+#         print('Timeout waiting for moveto')
+#         # TODO
+#         return
+
+#     #UpdateMissionDescription("Mission complete!! Uff")
+#     print('move base completed goal with result ' + str(result_msg))
+
+    
+#     # Initialize CameraListener within the takeAPicture function
+#     camera_listener_instance = camera_listener(location)
+
+#     scanlaptop_message = "Scanning for laptop presence"
+#     updateMissionDescription(scanlaptop_message, mission_location=location)
+#     # Wait for some time to ensure that the CameraListener has captured the image
+#     rospy.sleep(3)
+    
+#     # Load a pretrained YOLOv8n model
+#     model = YOLO('yolov8n.pt')
+
+#     source = '../person_laptop/laptop.png'
+
+#     # Run inference on 'IMAGE1' with arguments
+#     model.predict(source, save=True, imgsz=320, conf=0.5, save_txt = True)
+
+#     filename = "/home/mestre/catkin_ws/src/TP3/PSR_Trabalho3/robutler_bringup_tp3/person_laptop/runs/detect/predict/labels/laptop.txt"
+
+#     try:
+#         with open(filename, "r") as f:
+#             first_two_characters = f.readline()[:2]
+#             print(first_two_characters)
+
+
+#         if first_two_characters == "63":
+#             laptop_message = "I have successfully detected the laptop!!!"
+#             updateMissionDescription(laptop_message,mission_location=location)
+#             rospy.sleep(5)
+#             funny_message = "Someone has been playing Counter Strike (and they're even bigger bots than I am)"
+#             updateMissionDescription(funny_message,mission_location=location)
+#         else:
+#             nolaptop_message = "There is no laptop on the desk"
+#             updateMissionDescription(nolaptop_message,mission_location=location)
+
+#     except:
+#         nolaptop_message = "There is no laptop on the desk"
+#         updateMissionDescription(nolaptop_message,mission_location=location)
+#     rospy.sleep(4)
+#     end_laptop_message = "I have completed one more mission, what's next my Master?"
+#     updateMissionDescription(end_laptop_message,mission_location=location)
 
 def searchForCoke(feedback, x, y, z, R, P, Y,location,goal_publisher,camera_listener):
     #MoveTo start
@@ -945,6 +1024,502 @@ def isTableClean(feedback,goal_publisher, camera_listener):
     cv2.waitKey(0)
     return
 
+def racingMode(feedback, track_nmbr ,goal_publisher):
+    #Starting point - Move to is used to make sure that it is the right starting point
+    ########################################QUERO DAR O TEMPO A CADA LOCALIZAÇÃO PROXIMA CENA
+    location="Spawn"
+    p = Pose()
+    p.position = Point(x=-0.630438, y=1.045707, z=0)
+    q = quaternion_from_euler(-0.000003 , 0.003170 , 0.000112)  # From euler angles (rpy) to quaternion
+    p.orientation = Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
+
+    ps = PoseStamped()
+    ps.pose = p
+    ps.header = Header(frame_id='map', stamp=rospy.Time.now())  
+    print('First looking in : ' + location)
+    goal_publisher.publish(ps)     
+
+    # TODO know when move is finished
+    try:
+        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+    except:
+        print('Timeout waiting for moveto')
+        # TODO
+        return
+    print('move base completed goal with result ' + str(result_msg))
+    
+    ########################################### 8 TRACK RACE ######################################
+    if track_nmbr == "8":
+        location = "spawn"
+        #Previous Highscore data treatment
+        try:
+            with open('/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/race_files/text_files/8_track_times.txt', 'r') as file:
+                times = [float(line.split()[0]) for line in file.readlines()]
+
+                if times:
+                    high_score = min(times)
+                    h_minutes, h_seconds = divmod(high_score,60)
+                    print(f"High Score: {int(h_minutes)} minutes and {h_seconds:.2f} seconds")               
+                else:
+                    print("No race times recorded yet.")
+        except FileNotFoundError:
+            print("I didnt find the corresponding file.")
+        rospy.sleep(5)   #Controlo de erros
+
+        updateMissionDescription("When my masters aren't home, sometimes it gets a little bit boring\n So there is a game I like to play", mission_location=location)
+        rospy.sleep(6)
+
+        complete_message = "I like to do a little race and try to beat my previous High Score that is {}:{:02d}s. \n This is the track we're using :".format(int(h_minutes),int(h_seconds) % 100)
+        updateMissionDescription(complete_message, mission_location=location)
+        rospy.sleep(6)
+        
+        track = cv2.imread("/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/race_files/race_tracks/8_track.png")
+        cv2.imshow("Race Track", track)
+        cv2.waitKey(6000)
+        cv2.destroyAllWindows()
+        rospy.sleep(6)
+        
+        updateMissionDescription("Let's go then. I am speed!!", mission_location=location)
+        rospy.sleep(2)
+        
+        updateMissionDescription("3.....", mission_location=location)
+        rospy.sleep(1)
+        
+        updateMissionDescription("2.....", mission_location=location)
+        rospy.sleep(1)
+        
+        updateMissionDescription("1.....", mission_location=location)
+        rospy.sleep(1)
+        
+        updateMissionDescription("Let's gooo", mission_location=location)
+        start_time = time.time()
+    
+        # Deslocation start
+        p1 = Pose()
+        p1.position = Point(x=6.831023, y=-1.116580, z=0)
+        q1 = quaternion_from_euler(-0.000003 , 0.003170 , 0.764591)  # From euler angles (rpy) to quaternion
+        p1.orientation = Quaternion(x=q1[0], y=q1[1], z=q1[2], w=q1[3])
+
+        ps1 = PoseStamped()
+        ps1.pose = p1
+        ps1.header = Header(frame_id='map', stamp=rospy.Time.now())  
+
+        print('First looking in : ' + location)
+        goal_publisher.publish(ps1)     
+
+        # TODO know when move is finished
+        try:
+            result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+        except:
+            print('Timeout waiting for moveto')
+            # TODO
+            return
+        print('move base completed goal with result ' + str(result_msg))
+        updateMissionDescription("This first turn is a little complicated, but I'll make it!", mission_location=location)
+        rospy.sleep(1)
+
+
+    ## SECOND POINT
+        location = "1st checkpoint"
+        p2 = Pose()
+        p2.position = Point(x=6.250231, y=3.150, z=0) #3.100
+        q2 = quaternion_from_euler(-0.002082 , 0.002402 , -3.138163)  # From euler angles (rpy) to quaternion
+        p2.orientation = Quaternion(x=q2[0], y=q2[1], z=q2[2], w=q2[3])
+
+        ps2 = PoseStamped()
+        ps2.pose = p2
+        ps2.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
+
+        print('2 looking in : ' + location)
+        goal_publisher.publish(ps2)     
+
+        # TODO know when move is finished
+        try:
+            result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+        except:
+            print('Timeout waiting for moveto')
+            # TODO
+            return
+        print('move base completed goal with result ' + str(result_msg))
+        rospy.sleep(1)
+        updateMissionDescription("Looks like Im doing a good time, let's keep this up", mission_location=location)
+
+
+        
+        ## Third point 
+        p3 = Pose()
+        p3.position = Point(x=3.603607, y=-3.685151, z=0)
+        q3 = quaternion_from_euler(-0.000003 , 0.003174 , -2.839922)  # From euler angles (rpy) to quaternion
+        p3.orientation = Quaternion(x=q3[0], y=q3[1], z=q3[2], w=q3[3])
+
+        ps3 = PoseStamped()
+        ps3.pose = p3
+        ps3.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
+
+        print('\n3 looking in : ' + location)
+        goal_publisher.publish(ps3)     
+
+        # TODO know when move is finished
+        try:
+            result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+        except:
+            print('Timeout waiting for moveto')
+            # TODO
+            return
+        print('move base completed goal with result ' + str(result_msg))
+        rospy.sleep(1)
+        updateMissionDescription("Turbo : ON ", mission_location=location)
+
+        ## Forth point 
+        p4 = Pose()
+        p4.position = Point(x=-1.574145, y=-3.353937, z=0)
+        q4 = quaternion_from_euler(-0.000003 , 0.003169 , 1.685966)  # From euler angles (rpy) to quaternion
+        p4.orientation = Quaternion(x=q4[0], y=q4[1], z=q4[2], w=q4[3])
+
+        ps4 = PoseStamped()
+        ps4.pose = p4
+        ps4.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
+
+        print('\n4 looking in : ' + location)
+        goal_publisher.publish(ps4)     
+
+        # TODO know when move is finished
+        try:
+            result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+        except:
+            print('Timeout waiting for moveto')
+            # TODO
+            return
+        print('move base completed goal with result ' + str(result_msg))
+        rospy.sleep(1)
+        updateMissionDescription("We are almost there !!", mission_location=location)
+
+        ## LAST POINT 
+        p5 = Pose()
+        p5.position = Point(x=-0.630448, y=1.045690, z=0)
+        q5 = quaternion_from_euler(0 , 0 , 0)  # From euler angles (rpy) to quaternion
+        p5.orientation = Quaternion(x=q5[0], y=q5[1], z=q5[2], w=q5[3])
+
+        ps5 = PoseStamped()
+        ps5.pose = p5
+        ps5.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
+
+        print('5 looking in : ' + location)
+        goal_publisher.publish(ps5)    
+
+        # TODO know when move is finished
+        try:
+            result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+        except:
+            print('Timeout waiting for moveto')
+            # TODO
+            return
+        print('move base completed goal with result ' + str(result_msg))
+        
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        minutes, seconds = divmod(elapsed_time,60)
+
+        with open('/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/race_files/text_files/8_track_times.txt', 'a') as file:
+            file.write(f"{elapsed_time:.2f} seconds\n")
+        print(elapsed_time,"Contagem do tempo")
+
+        # print(f"Race completed in {elapsed_time:.2f} seconds")
+        print(f"Race completed: {int(minutes)} minutes {int(seconds):.2f} seconds")
+        complete_message = "MADE ITTTTT !!!! It only took {}:{:02d}s.  What a runn".format(int(minutes),int(seconds) % 100)
+        updateMissionDescription(complete_message, mission_location=location)
+        rospy.sleep(7)
+        #Highscore update data treatment
+        try:
+            with open('/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/race_files/text_files/8_track_times.txt', 'r') as file:
+                times = [float(line.split()[0]) for line in file.readlines()]
+
+                if times:
+                    high_score = min(times)
+                    h_minutes, h_seconds = divmod(high_score,60)
+                    print(f"High Score: {int(h_minutes)} minutes and {h_seconds:.2f} seconds")               
+                else:
+                    print("No race times recorded yet.")
+        except FileNotFoundError:
+            print("I didnt find the corresponding file.")
+        if high_score == elapsed_time:
+            updateMissionDescription("I can't believe it I just broke the record!!!!!! *happy noises*", mission_location=location)
+        else:
+            updateMissionDescription("Couldn't beat my best time, I need to practice more!!", mission_location=location)
+        rospy.sleep(5)   #Controlo de erros
+    elif track_nmbr == "0":
+         ################################## Pista circular####################
+        location = "spawn"
+        #Previous Highscore data treatment
+        try:
+            with open('/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/race_files/text_files/oval_track_times.txt', 'r') as file:
+                times = [float(line.split()[0]) for line in file.readlines()]
+
+                if times:
+                    high_score = min(times)
+                    h_minutes, h_seconds = divmod(high_score,60)
+                    print(f"High Score: {int(h_minutes)} minutes and {h_seconds:.2f} seconds")               
+                else:
+                    print("No race times recorded yet.")
+        except FileNotFoundError:
+            print("I didnt find the corresponding file.")
+        rospy.sleep(5)   #Controlo de erros
+
+        updateMissionDescription("When my masters aren't home, sometimes it gets a little bit boring\n So there is a game I like to play", mission_location=location)
+        rospy.sleep(6)
+
+        complete_message = "I like to do a little race and try to beat my previous High Score that is {}:{:02d}s. \n This is the track we're using :".format(int(h_minutes),int(h_seconds) % 100)
+        updateMissionDescription(complete_message, mission_location=location)
+        rospy.sleep(6)
+        
+        track = cv2.imread("/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/race_files/race_tracks/circular_track.png")
+        cv2.imshow("Race Track", track)
+        cv2.waitKey(6000)
+        cv2.destroyAllWindows()
+        rospy.sleep(6)
+        
+        updateMissionDescription("Let's go then. I am speed!!", mission_location=location)
+        rospy.sleep(2)
+        
+        updateMissionDescription("3.....", mission_location=location)
+        rospy.sleep(1)
+        
+        updateMissionDescription("2.....", mission_location=location)
+        rospy.sleep(1)
+        
+        updateMissionDescription("1.....", mission_location=location)
+        rospy.sleep(1)
+        
+        updateMissionDescription("Let's gooo", mission_location=location)
+        start_time = time.time()
+    
+        # Deslocation start
+        p1 = Pose()
+        p1.position = Point(x=3.030721, y=0.166980, z=0)
+        q1 = quaternion_from_euler(-0.000003 ,0.003168 , -1.599489)  # From euler angles (rpy) to quaternion
+        p1.orientation = Quaternion(x=q1[0], y=q1[1], z=q1[2], w=q1[3])
+
+        ps1 = PoseStamped()
+        ps1.pose = p1
+        ps1.header = Header(frame_id='map', stamp=rospy.Time.now())  
+
+        print('First looking in : ' + location)
+        goal_publisher.publish(ps1)     
+
+        # TODO know when move is finished
+        try:
+            result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+        except:
+            print('Timeout waiting for moveto')
+            # TODO
+            return
+        print('move base completed goal with result ' + str(result_msg))
+        updateMissionDescription("I love to drift in the turn !", mission_location=location)
+        rospy.sleep(1)
+      
+        ## Second point ---- ajustar aqui
+        p3 = Pose()
+        p3.position = Point(x=3.603607, y=-3.685151, z=0)
+        q3 = quaternion_from_euler(-0.000003 , 0.003174 , -2.839922)  # From euler angles (rpy) to quaternion
+        p3.orientation = Quaternion(x=q3[0], y=q3[1], z=q3[2], w=q3[3])
+
+        ps3 = PoseStamped()
+        ps3.pose = p3
+        ps3.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
+
+        print('\n3 looking in : ' + location)
+        goal_publisher.publish(ps3)     
+
+        # TODO know when move is finished
+        try:
+            result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+        except:
+            print('Timeout waiting for moveto')
+            # TODO
+            return
+        print('move base completed goal with result ' + str(result_msg))
+        rospy.sleep(1)
+        updateMissionDescription("Catxau", mission_location=location)
+
+        ## Third point 
+        p4 = Pose()
+        p4.position = Point(x=-1.574145, y=-3.353937, z=0)
+        q4 = quaternion_from_euler(-0.000003 , 0.003169 , 1.685966)  # From euler angles (rpy) to quaternion
+        p4.orientation = Quaternion(x=q4[0], y=q4[1], z=q4[2], w=q4[3])
+
+        ps4 = PoseStamped()
+        ps4.pose = p4
+        ps4.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
+
+        print('\n4 looking in : ' + location)
+        goal_publisher.publish(ps4)     
+
+        # TODO know when move is finished
+        try:
+            result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+        except:
+            print('Timeout waiting for moveto')
+            # TODO
+            return
+        print('move base completed goal with result ' + str(result_msg))
+        rospy.sleep(1)
+        updateMissionDescription("One last push !!", mission_location=location)
+
+        ## LAST POINT 
+        p5 = Pose()
+        p5.position = Point(x=-0.630448, y=1.045690, z=0)
+        q5 = quaternion_from_euler(0 , 0 , 0)  # From euler angles (rpy) to quaternion
+        p5.orientation = Quaternion(x=q5[0], y=q5[1], z=q5[2], w=q5[3])
+
+        ps5 = PoseStamped()
+        ps5.pose = p5
+        ps5.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
+
+        print('5 looking in : ' + location)
+        goal_publisher.publish(ps5)    
+
+        # TODO know when move is finished
+        try:
+            result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+        except:
+            print('Timeout waiting for moveto')
+            # TODO
+            return
+        print('move base completed goal with result ' + str(result_msg))
+        
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        minutes, seconds = divmod(elapsed_time,60)
+
+        with open('/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/race_files/text_files/oval_track_times.txt', 'a') as file:
+            file.write(f"{elapsed_time:.2f} seconds\n")
+        print(elapsed_time,"Contagem do tempo")
+
+        print(f"Race completed: {int(minutes)} minutes {int(seconds):.2f} seconds")
+        complete_message = "LET'S GOOOO !!!! It only took {}:{:02d}s.  I love this track".format(int(minutes),int(seconds) % 100)
+        updateMissionDescription(complete_message, mission_location=location)
+        rospy.sleep(7)
+        #Highscore update data treatment
+        try:
+            with open('/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/race_files/text_files/oval_track_times.txt', 'r') as file:
+                times = [float(line.split()[0]) for line in file.readlines()]
+
+                if times:
+                    high_score = min(times)
+                    h_minutes, h_seconds = divmod(high_score,60)
+                    print(f"High Score: {int(h_minutes)} minutes and {h_seconds:.2f} seconds")               
+                else:
+                    print("No race times recorded yet.")
+                #aqui para fazer a comparação talvez dar append para uma lista
+        except FileNotFoundError:
+            print("I didnt find the corresponding file.")
+        if high_score == elapsed_time:
+            updateMissionDescription("I can't believe it I just broke the record!!!!!! *happy noises*", mission_location=location)
+        else:
+            updateMissionDescription("Couldn't beat my best time, I need to practice more!!", mission_location=location)
+        rospy.sleep(5)   #Controlo de erros
+
+    else:
+        ### Drag race 
+        location = "spawn"
+        #Previous Highscore data treatment
+        try:
+            with open('/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/race_files/text_files/drag_times.txt', 'r') as file:
+                times = [float(line.split()[0]) for line in file.readlines()]
+
+                if times:
+                    high_score = min(times)
+                    h_minutes, h_seconds = divmod(high_score,60)
+                    print(f"High Score: {int(h_minutes)} minutes and {h_seconds:.2f} seconds")               
+                else:
+                    print("No race times recorded yet.")
+        except FileNotFoundError:
+            print("I didnt find the corresponding file.")
+        rospy.sleep(5)   #Controlo de erros
+
+        updateMissionDescription("When my masters aren't home, sometimes it gets a little bit boring\n So there is a game I like to play", mission_location=location)
+        rospy.sleep(6)
+        complete_message = "I like to do a little race and try to beat my previous High Score that is {}:{:02d}s. \n This is the track we're using :".format(int(h_minutes),int(h_seconds) % 100)
+        updateMissionDescription(complete_message, mission_location=location)
+        rospy.sleep(6)
+        
+        track = cv2.imread("/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/race_files/race_tracks/drag_track.png")
+        cv2.imshow("Race Track", track)
+        cv2.waitKey(6000)
+        cv2.destroyAllWindows()
+        rospy.sleep(6)
+        
+        updateMissionDescription("In this track I can really put my speed to test. I am speed!!", mission_location=location)
+        rospy.sleep(5)
+        
+        updateMissionDescription("3.....", mission_location=location)
+        rospy.sleep(1)
+        
+        updateMissionDescription("2.....", mission_location=location)
+        rospy.sleep(1)
+        
+        updateMissionDescription("1.....", mission_location=location)
+        rospy.sleep(1)
+        
+        updateMissionDescription("Let's gooo", mission_location=location)
+        start_time = time.time()
+        
+        #Moviment Start
+        
+        p1 = Pose()
+        p1.position = Point(x=4.941404, y=1.106053, z=0)
+        q1 = quaternion_from_euler(0 , 0.003201 , 0.035938)  # From euler angles (rpy) to quaternion
+        p1.orientation = Quaternion(x=q1[0], y=q1[1], z=q1[2], w=q1[3])
+
+        ps1 = PoseStamped()
+        ps1.pose = p1
+        ps1.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
+
+        print('First looking in : ' + location)
+        goal_publisher.publish(ps1)     
+
+        # TODO know when move is finished
+        try:
+            result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+        except:
+            print('Timeout waiting for moveto')
+            # TODO
+            return
+        print('move base completed goal with result ' + str(result_msg))
+        
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        minutes, seconds = divmod(elapsed_time,60)
+
+        with open('/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/race_files/text_files/drag_times.txt', 'a') as file:
+            file.write(f"{elapsed_time:.2f} seconds\n")
+        print(elapsed_time,"Contagem do tempo")
+
+        print(f"Race completed: {int(minutes)} minutes {int(seconds):.2f} seconds")
+        complete_message = "MADE ITTTTT !!!! It only took {}:{:02d}s.  What a runn".format(int(minutes),int(seconds) % 100)
+        updateMissionDescription(complete_message, mission_location=location)
+        rospy.sleep(7)
+        #Highscore update data treatment
+        try:
+            with open('/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/race_files/text_files/drag_times.txt', 'r') as file:
+                times = [float(line.split()[0]) for line in file.readlines()]
+
+                if times:
+                    high_score = min(times)
+                    h_minutes, h_seconds = divmod(high_score,60)
+                    print(f"High Score: {int(h_minutes)} minutes and {h_seconds:.2f} seconds")               
+                else:
+                    print("No race times recorded yet.")
+        except FileNotFoundError:
+            print("I didnt find the corresponding file.")
+        if high_score == elapsed_time:
+            updateMissionDescription("I can't believe it I just broke the record!!!!!! *happy noises*", mission_location=location)
+        else:
+            updateMissionDescription("Couldn't beat my best time, I need to practice more!!", mission_location=location)
+        rospy.sleep(5)   #Controlo de erros
+
+    #Meter um iff a dizer se foi ou não o highscore
+
 def main():
     global server
 
@@ -976,6 +1551,9 @@ def main():
                                 callback=partial(isTableClean,
                                                  goal_publisher=goal_publisher,
                                                  camera_listener=CameraListener3))
+    h_sixth_entry = menu_handler.insert("F1 Mode?")
+
+
     
     updateMissionDescription("Waiting for a Mission to start",mission_location=location)
 
@@ -1048,13 +1626,17 @@ def main():
     entry_laptop = menu_handler.insert("Laptop",parent=h_third_entry)
     entry_coke_can = menu_handler.insert("Coke Can",parent=h_third_entry)
     entry_blueball = menu_handler.insert("Blue Ball",parent=h_third_entry)
-    entry_blueball = menu_handler.insert("Green Ball",parent=h_third_entry)
+    entry_redball = menu_handler.insert("Red Ball",parent=h_third_entry)
+    entry_bluecube = menu_handler.insert("Blue Cube",parent=h_third_entry)
+    entry_redcube = menu_handler.insert("Red Cube",parent=h_third_entry)
 
     
     # entry = menu_handler.insert("Bedroom", parent=entry_laptop,
     #                             callback=partial(searchForLaptop,
     #                                              goal_publisher=goal_publisher,                                                
     #                                              camera_listener=CameraListener4))
+
+    #### COCA ###  
 
     entry = menu_handler.insert("Living_room", parent=entry_coke_can,
                                 callback=partial(searchForCoke,
@@ -1063,6 +1645,157 @@ def main():
                                                  location='Living_Room',
                                                  goal_publisher=goal_publisher,                                                
                                                  camera_listener=CameraListener5))
+    
+    entry = menu_handler.insert("Kitchen", parent=entry_coke_can,
+                                callback=partial(searchForCoke,
+                                                 x=1.536717, y=0.002346, z=0,
+                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 location='Kitchen',
+                                                 goal_publisher=goal_publisher,                                                
+                                                 camera_listener=CameraListener5))
+    
+    entry = menu_handler.insert("Bedroom", parent=entry_coke_can,
+                                callback=partial(searchForCoke,
+                                                 x=1.536717, y=0.002346, z=0,
+                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 location='Bedroom',
+                                                 goal_publisher=goal_publisher,                                                
+                                                 camera_listener=CameraListener5))
+         ########### BLUE BALL ###########
+
+    
+    entry = menu_handler.insert("Living_room", parent=entry_blueball,
+                                callback=partial(searchForObject,
+                                                 x=1.536717, y=0.002346, z=0,
+                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 location='Living_Room',
+                                                 ball = True,
+                                                 color = "blue",
+                                                 goal_publisher=goal_publisher,                                                
+                                                 camera_listener=CameraListener6))
+    
+    entry = menu_handler.insert("Kitchen", parent=entry_blueball,
+                                callback=partial(searchForObject,
+                                                 x=1.536717, y=0.002346, z=0,
+                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 location='Kitchen',
+                                                 ball = True,
+                                                 color = "blue",
+                                                 goal_publisher=goal_publisher,                                                
+                                                 camera_listener=CameraListener6))
+        
+    entry = menu_handler.insert("Bedroom", parent=entry_blueball,
+                                callback=partial(searchForObject,
+                                                 x=1.536717, y=0.002346, z=0,
+                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 location='Bedroom',
+                                                 ball = True,
+                                                 color = "blue",
+                                                 goal_publisher=goal_publisher,                                                
+                                                 camera_listener=CameraListener6))
+    
+    
+    ############ RED BALL ###########
+    
+    entry = menu_handler.insert("Living_room", parent=entry_redball,
+                                callback=partial(searchForObject,
+                                                 x=1.536717, y=0.002346, z=0,
+                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 location='Living_Room',
+                                                 ball = True,
+                                                 color = "red",
+                                                 goal_publisher=goal_publisher,                                                
+                                                 camera_listener=CameraListener6))
+    
+    entry = menu_handler.insert("Kitchen", parent=entry_redball,
+                                callback=partial(searchForObject,
+                                                 x=1.536717, y=0.002346, z=0,
+                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 location='Kitchen',
+                                                 ball = True,
+                                                 color = "red",
+                                                 goal_publisher=goal_publisher,                                                
+                                                 camera_listener=CameraListener6))
+        
+    entry = menu_handler.insert("Bedroom", parent=entry_redball,
+                                callback=partial(searchForObject,
+                                                 x=1.536717, y=0.002346, z=0,
+                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 location='Bedroom',
+                                                 ball = True,
+                                                 color = "red",
+                                                 goal_publisher=goal_publisher,                                                
+                                                 camera_listener=CameraListener6))
+    
+    
+    
+    
+    ######### CUBOS RED #########
+    
+    entry = menu_handler.insert("Living_room", parent=entry_bluecube,
+                                callback=partial(searchForObject,
+                                                 x=1.536717, y=0.002346, z=0,
+                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 location='Living_Room',
+                                                 ball = False,
+                                                 color = "blue",
+                                                 goal_publisher=goal_publisher,                                                
+                                                 camera_listener=CameraListener6))
+    
+    entry = menu_handler.insert("Kitchen", parent=entry_bluecube,
+                                callback=partial(searchForObject,
+                                                 x=1.536717, y=0.002346, z=0,
+                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 location='Kitchen',
+                                                 ball = False,
+                                                 color = "blue",
+                                                 goal_publisher=goal_publisher,                                                
+                                                 camera_listener=CameraListener6))
+        
+    entry = menu_handler.insert("Bedroom", parent=entry_bluecube,
+                                callback=partial(searchForObject,
+                                                 x=1.536717, y=0.002346, z=0,
+                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 location='Bedroom',
+                                                 ball = False,
+                                                 color = "blue",
+                                                 goal_publisher=goal_publisher,                                                
+                                                 camera_listener=CameraListener6))
+    
+    
+    ############
+    
+    entry = menu_handler.insert("Living_room", parent=entry_redcube,
+                                callback=partial(searchForObject,
+                                                 x=1.536717, y=0.002346, z=0,
+                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 location='Living_Room',
+                                                 ball = False,
+                                                 color = "red",
+                                                 goal_publisher=goal_publisher,                                                
+                                                 camera_listener=CameraListener6))
+    
+    entry = menu_handler.insert("Kitchen", parent=entry_redcube,
+                                callback=partial(searchForObject,
+                                                 x=1.536717, y=0.002346, z=0,
+                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 location='Kitchen',
+                                                 ball = False,
+                                                 color = "red",
+                                                 goal_publisher=goal_publisher,                                                
+                                                 camera_listener=CameraListener6))
+        
+    entry = menu_handler.insert("Bedroom", parent=entry_redcube,
+                                callback=partial(searchForObject,
+                                                 x=1.536717, y=0.002346, z=0,
+                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 location='Bedroom',
+                                                 ball = False,
+                                                 color = "red",
+                                                 goal_publisher=goal_publisher,                                                
+                                                 camera_listener=CameraListener6))
+
+
 
 
     
@@ -1073,6 +1806,24 @@ def main():
     #                             callback=partial(searchForPerson,
     #                                              goal_publisher=goal_publisher,
     #                                              camera_listener=CameraListener2))
+
+    ############################### Race missions #######################
+
+    entry = menu_handler.insert("8 Track", parent=h_sixth_entry,
+                                callback=partial(racingMode,
+                                                 track_nmbr = "8",
+                                                 goal_publisher=goal_publisher))
+    
+    entry = menu_handler.insert("Oval Track", parent=h_sixth_entry,
+                                callback=partial(racingMode,
+                                                 track_nmbr = "0",
+                                                 goal_publisher=goal_publisher))
+    
+    entry = menu_handler.insert("Drag Race", parent=h_sixth_entry,
+                                callback=partial(racingMode,
+                                                 track_nmbr = "5",
+                                                 goal_publisher=goal_publisher))
+
     
     makeMenuMarker("marker1")
 
