@@ -515,7 +515,8 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
     cv_image= cv2.imread("../object_detec/object_detec.png")
     rospy.sleep(3)
 
-
+    cv_image = cv_image[:7 * cv_image.shape[0] // 12, :]
+    cv2.imwrite('object_detec.png',cv_image)
     # Convert BGR to HSV
     hsv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
     
@@ -526,27 +527,44 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
     else:
         mask = cv2.inRange(hsv_image, lower_blue, upper_blue)
     
-    
+    result = cv2.bitwise_and(cv_image,cv_image, mask= mask)
+    cv2.imshow('result',result)
+    cv2.waitKey(0)
+    cv2.imwrite('object_detec.png',result)
+    rospy.sleep(1)
     # Find contours for red objects
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
-    
-    #gray = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
-    #img = cv.medianBlur(img,5)
-    spheres = cv2.HoughCircles(mask, cv2.HOUGH_GRADIENT, dp=1.7, minDist=100,param2=50)
-    
+    print('CONTOURS',len(contours))
+
     object_count = 0
+    new_contours = []
+    for contour in contours:
+        area = cv2.contourArea(contour)
+        if area > 50:
+            new_contours.append(contour)
+    print('newcontours',len(new_contours))
     
-    if contours:
+    
+    gray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
+    blur = cv2.medianBlur(gray,5)
+    
+    spheres = cv2.HoughCircles(blur,cv2.HOUGH_GRADIENT,1.3,20,
+                            param1=150,param2=39,minRadius=80,maxRadius=150)
+    spheres = np.uint16(np.around(spheres))   
+    print('spheres',spheres.size)
+    
+    
+    if new_contours:
         if is_ball:
             if spheres is not None:
-                object_count = len(spheres)
-            updateMissionDescription("Found {} {} balls".format(object_count,color), mission_location=location)
+                
+                object_count = spheres.size/3
+            updateMissionDescription("Found {} {} balls".format(int(object_count),color), mission_location=location)
         else:
-            object_count = len(contours)
+            object_count = len(new_contours)
             if spheres is not None:
-                object_count = object_count - len(spheres)
-            updateMissionDescription("Found {} {} cubes".format(object_count,color), mission_location=location)
+                object_count = object_count - spheres.size/3
+            updateMissionDescription("Found {} {} cubes".format(int(object_count),color), mission_location=location)
         
     
     

@@ -4,12 +4,13 @@ import cv2
 import math
 import numpy as np
 
-image = cv2.imread("/home/mestre/Desktop/circle.png")
+image = cv2.imread("object_detec.png")
 
 output = image.copy()
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp=1.7, minDist=100,param2=50)
+circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp=0.5, minDist=50,param2=100)
+print(len(circles))
 # ensure at least some circles were found
 if circles is not None:
 	# convert the (x, y) coordinates and radius of the circles to integers
