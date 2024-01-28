@@ -461,7 +461,7 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
     upper_blue = np.array([138,255,255])  
 
     is_ball = ball
-    color = color
+    
     
     
     #MoveTo start
@@ -529,128 +529,35 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
     
     # Find contours for red objects
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    object_contours = 0
-    
-    gray = cv2.cvtColor(contours, cv2.COLOR_BGR2GRAY)
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp=1.7, minDist=100,param2=50)
     
     
-    #MINERD
-    #if is_ball:
-    #    if circles is not None:
-    #        object_count = circles
-    #    else:
-    #        object_count = 0
-    #        
-    #else:
-    #    if circles is not None:
-    #        object_count = contours
-    #        for contour in contours:
-    #            area = cv2.contourArea(contour)
-    #            if area > 100:
-    #                ola
-    #    else:
-    #        object_count = contours
-    #        
-    #for contour in contours:
-    #    area = cv2.contourArea(contour)
-    #    if area > 100:
-    #        object_contours += 1
-
+    #gray = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+    #img = cv.medianBlur(img,5)
+    spheres = cv2.HoughCircles(mask, cv2.HOUGH_GRADIENT, dp=1.7, minDist=100,param2=50)
+    
+    object_count = 0
+    
+    if contours:
+        if is_ball:
+            if spheres is not None:
+                object_count = len(spheres)
+            updateMissionDescription("Found {} {} balls".format(object_count,color), mission_location=location)
+        else:
+            object_count = len(contours)
+            if spheres is not None:
+                object_count = object_count - len(spheres)
+            updateMissionDescription("Found {} {} cubes".format(object_count,color), mission_location=location)
         
     
-
-    if object_contours > 0:
-        print("Coke detected!!!!!")
-        updateMissionDescription("Looks like there is coke in the {}".format(location), mission_location=location)
-
-    else:
-        print("Bebe água que é melhor.")
-        updateMissionDescription("Nope, nothing here boss! Drink water please.", mission_location=location)
-
-
-    image = cv2.imread("/home/mestre/Desktop/circle.png")
-
-    output = image.copy()
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp=1.7, minDist=100,param2=50)
-    # ensure at least some circles were found
-    if circles is not None:
-        # convert the (x, y) coordinates and radius of the circles to integers
-        circles = np.round(circles[0, :]).astype("int")
-        # loop over the (x, y) coordinates and radius of the circles
-        for (x, y, r) in circles:
-            # draw the circle in the output image, then draw a rectangle
-            # corresponding to the center of the circle
-            cv2.circle(output, (x, y), r, (0, 255, 0), 4)
-            cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
-        # show the output image
-        cv2.imshow("output", np.hstack([image, output]))
-        cv2.waitKey(0)
-
-
-    # Display the result (you can remove this in the final version)
-    # cv2.imshow("Red Object Detection", cv_image)
-    # cv2.waitKey(1)
     
-    rospy.sleep(5)
-    end_laptop_message = "I have completed one more mission, what's next my Master?"
-    updateMissionDescription(end_laptop_message,mission_location=location)
+    rospy.sleep(3)
+    end_object_message = "Checking for objects type of mission done, what's my next one?"
+    updateMissionDescription(end_object_message,mission_location=location)
 
-
-    #1 aligning myself for the picture
-    #2 ficar certinho
-    print('Called searching for  in ' + location)
-    updateMissionDescription("Searching for objects in the {}".format(location), mission_location=location)
-    
-    p = Pose()
-    p.position = Point(x=x, y=y, z=z)
-    q = quaternion_from_euler(R, P, Y)  # From euler angles (rpy) to quaternion
-    p.orientation = Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
-
-    ps = PoseStamped()
-    ps.pose = p
-    ps.header = Header(frame_id='map', stamp=rospy.Time.now())
-
-    print('Sending Goal to ' + location)
-    goal_publisher.publish(ps)
-
-    # TODO: Wait for move_base to finish
-    try:
-        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=60)
-    except:
-        print('Timeout waiting for move_base')
-        # TODO: Handle timeout
-        return
-
-    print('Move base completed goal with result ' + str(result_msg))
-    
-    # Start the object detection node
-    duration = 5.0  # Set the duration for color detection
-    object_detection_node = ObjectDetectionNode(duration)
-    object_detection_node.start_detection()
-
-    # Access the object count from the object detection node
-    object_contours = object_detection_node.object_contours
-    print("OBJETOS AQUI", object_contours)
-
-    # Display the result in the mission description
-    complete_message = f"Mission complete! Found {(object_contours)} objects in {location}."
-    updateMissionDescription(complete_message, mission_location=location)
-
-    # Optionally, perform additional logic after object detection
-    print("Additional logic after object detection.")
-
-    # Signal shutdown or proceed with the next mission
-    # rospy.signal_shutdown("Mission complete. Shutting down.")
-    return
-
-#IF RED DIFERENTE DE 0 THEN COKE CAN / fazer uma função aqui para ler uma foto em vez de uma camara
 
 
 #Search for person Yolo only
-#def searchForPerson(feedback,goal_publisher, camera_listener):
+'''def searchForPerson(feedback,goal_publisher, camera_listener):
     #MoveTo start
     location="kitchen"
     print('First, moving to ' + location)
@@ -925,7 +832,7 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
         updateMissionDescription(nolaptop_message,mission_location=location)
     rospy.sleep(4)
     end_laptop_message = "I have completed one more mission, what's next my Master?"
-    updateMissionDescription(end_laptop_message,mission_location=location)
+    updateMissionDescription(end_laptop_message,mission_location=location) '''
 
 def searchForCoke(feedback, x, y, z, R, P, Y,location,goal_publisher,camera_listener):
     #MoveTo start
