@@ -215,21 +215,6 @@ The user is able to spawn various predefined objects in various spots in the hou
 rosrun robutler_bringup_tp3 spawn_object.py -l on_bed -o sphere_v
 ```
 Bellow you can find two lists, containing both the code and respective name of all the usable objects and locations.
-<details>
-  <summary>List of spawnable objects</summary>
-
-  - sphere_v (Violet Sphere);
-  - sphere_r (Red Sphere);
-  - sphere_g (Green Sphere);
-  - sphere_org (Orange Sphere);
-  - sphere_Y (Yellow Sphere);
-  - sphere_b (Blue Sphere);
-  - cube_r (Red Cube);
-  - cube_b (Blue Cube);
-  - person_standing (Person Standing up);
-  - laptop (Open Laptop);
-  - can_coke (Can of Coke);
-</details>
 
 <br>
 
@@ -248,6 +233,24 @@ Bellow you can find two lists, containing both the code and respective name of a
 
 <br>
 
+<details>
+  <summary>List of spawnable objects</summary>
+
+  - sphere_v (Violet Sphere);
+  - sphere_r (Red Sphere);
+  - sphere_g (Green Sphere);
+  - sphere_org (Orange Sphere);
+  - sphere_Y (Yellow Sphere);
+  - sphere_b (Blue Sphere);
+  - cube_r (Red Cube);
+  - cube_b (Blue Cube);
+  - person_standing (Person Standing up);
+  - laptop (Open Laptop);
+  - can_coke (Can of Coke);
+</details>
+
+<br>
+
 ### Detection
 
 By analising the images captured by it's cameras, THOR is able to detect a plethora of things. By selecting "Search for object in division" in the mission menu, the user will be able to choose an object for THOR to find in a given division. The object can be balls and cubes of various colors, a coke can and even a laptop. It will also count how many objects of the specified type were found in it's search!
@@ -261,7 +264,6 @@ THOR's detection module is also equiped to handle more advanced missions, such a
 Have you ever wanted to see how your roomba would act if you left it charging for a whole month? Well, THOR will allow you to satisfy this desire, while also providing a first view! By selecting the mission "F1 Mode?", THOR will start racing around the room as if it's life depended on it!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 ***
 <br>
 
