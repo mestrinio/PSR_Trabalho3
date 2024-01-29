@@ -69,6 +69,8 @@
     <li><a href="#usage">Usage</a></li>
       <ul>
         <li><a href="#Object-Spawn">Object Spawn</a></li>
+        <li><a href="#Detection">Detection</a></li>
+        <li><a href="#Specific-Missions">Specific Missions</a></li>
       </ul>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
