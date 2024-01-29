@@ -78,7 +78,7 @@
 <!-- ABOUT THE ASSIGNMENT -->
 ## About the Assignment
 <div align="center">
-<img  src="images/drawing1.png" alt="colorsegmenter" height="400">
+<img  src="images/THOR.png" alt="THOR" height="400">
 </div>
 <br>
 This assignment was developed for Robotic Systems Programming. It uses a simulated environment to program a simulated robot, model TurtleBot3. The bot is meant to be accomplish a certain number of missions, including detection of objects or people, using image similarity or database comparison (with YOLOv8), and other navigation and localization missions. The model has been modified to have similarities with the "Thor" god character. The program uses ROS and its programmed with Python language and OpenCV library.
