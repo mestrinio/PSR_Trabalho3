@@ -209,7 +209,7 @@ Other navigations:
 <br>
 
 ### Object Spawn
-
+***
 The user is able to spawn various predefined objects in various spots in the house by using the following structure ```rosrun robutler_bringup_tp3 spawn_object.py [-l LOCATION] [-o OBJECT]```. The command would look something like:
 ```
 rosrun robutler_bringup_tp3 spawn_object.py -l on_bed -o sphere_v
@@ -252,7 +252,7 @@ Bellow you can find two lists, containing both the code and respective name of a
 <br>
 
 ### Detection
-
+***
 By analising the images captured by it's cameras, THOR is able to detect a plethora of things. By selecting "Search for object in division" in the mission menu, the user will be able to choose an object for THOR to find in a given division. The object can be balls and cubes of various colors, a coke can and even a laptop. It will also count how many objects of the specified type were found in it's search!
 
 THOR's detection module is also equiped to handle more advanced missions, such as checking if the table is clean, which will check if there are any objects on the table, or if someone is home, which will take him around the house searching for a Human being.
@@ -260,12 +260,12 @@ THOR's detection module is also equiped to handle more advanced missions, such a
 <br>
 
 ### Specific Missions
-
+***
 Have you ever wanted to see how your roomba would act if you left it charging for a whole month? Well, THOR will allow you to satisfy this desire, while also providing a first view! By selecting the mission "F1 Mode?", THOR will start racing around the room as if it's life depended on it!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-***
+
 <br>
 
 <!-- CONTACT -->
