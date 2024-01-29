@@ -36,7 +36,7 @@
 <h3 align="center">THOR - Trully Hardworking Outstanding Robot</h3>
 
 <h2><b> Repository Owner: Pedro Martins 103800
-<br>Collaborators: Luís Fernandes 103085 & Afonso Pereira XXXXX </b></h2>
+<br>Collaborators: Luís Fernandes 103085 & Afonso Pereira 89142 </b></h2>
 
   <p align="center">
     This repository was created for evaluation @ Robotic Systems Programming "PSR 23-24 Trabalho prático 3".
@@ -199,15 +199,19 @@ Other navigations:
 OBJECT SPAWN, DETECTION AND SPECIFIC MISSIONS LEFT HERE.
 
 
+
+
+
+
 ***
 <br>
 
 <!-- CONTACT -->
 ## Contact
-Luís Fernandes - xxxx@ua.pt
+Luís Fernandes - luis.c.fernandes8@ua.pt
 
 
-Nuno Afonso Pereira - xxxx@ua.pt
+Nuno Afonso Pereira - nafonsofp@ua.pt
 
 
 Pedro Martins - pedro.mestre@ua.pt
