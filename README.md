@@ -205,7 +205,7 @@ Other navigations:
 
 ### Object Spawn
 
-The user is able to spawn various predefined objects in various spots in the house by using the following structure "rosrun robutler_bringup_tp3 spawn_object.py [-l LOCATION] [-o OBJECT]. The command would look something like:
+The user is able to spawn various predefined objects in various spots in the house by using the following structure ```rosrun robutler_bringup_tp3 spawn_object.py [-l LOCATION] [-o OBJECT]```. The command would look something like:
 ```
 rosrun robutler_bringup_tp3 spawn_object.py -l on_bed -o sphere_v
 ```
