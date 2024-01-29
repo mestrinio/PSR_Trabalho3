@@ -18,6 +18,11 @@ import cv2
 import numpy as np
 from visualization_msgs.msg import Marker
 from color_detection_copy import ObjectDetectionNode
+from playsound import playsound
+from sounds import play
+import pygame
+import gtts
+from tts import text_to_speech,txt_speech
 #from ultralytics import YOLO
 
 
@@ -167,6 +172,8 @@ def updateMissionDescription(mission_name, mission_location, complete_message=No
 
         # Create a new text marker for the mission description
         mission_text_marker, _ = makeTextMarker("text_mission_description", mission_name)
+        text_to_speech(mission_name)
+        txt_speech(mission_name)
         mission_text_marker.pose.position.z = 1  # Adjust the height of the text
 
         # Insert the new mission text marker
@@ -249,6 +256,7 @@ class CameraListener:
                 file_name = f"Photo_of_{self.location}_{timestamp_formatted}.jpg"
                 os.chdir(directory_path)
                 cv2.imwrite(file_name, cv_image)
+                play('foto')
                 rospy.loginfo("Image saved successfully as: " + file_name + ".")
                 self.image_saved = True
             except Exception as e:
@@ -277,6 +285,7 @@ class CameraListener2:
                     file_name = "Person3.png"
                 os.chdir(directory_path)
                 cv2.imwrite(file_name, cv_image)
+                play('foto')
                 rospy.loginfo("Image saved successfully as: " + file_name + ".")
                 self.image_saved = True
             except Exception as e:
@@ -300,6 +309,7 @@ class CameraListener3:
                 file_name = "Table_photo_2.png"
                 os.chdir(directory_path)
                 cv2.imwrite(file_name, cv_image)
+                play('foto')
                 rospy.loginfo("Image saved successfully as: " + file_name + ".")
                 self.image_saved = True
             except Exception as e:
@@ -323,6 +333,7 @@ class CameraListener4:
                 file_name = "laptop.png"
                 os.chdir(directory_path)
                 cv2.imwrite(file_name, cv_image)
+                play('foto')
                 rospy.loginfo("Image saved successfully as: " + file_name + ".")
                 self.image_saved = True
             except Exception as e:
@@ -346,6 +357,7 @@ class CameraListener5:
                 file_name = "coke_can.png"
                 os.chdir(directory_path)
                 cv2.imwrite(file_name, cv_image)
+                play('foto')
                 rospy.loginfo("Image saved successfully as: " + file_name + ".")
                 self.image_saved = True
             except Exception as e:
@@ -370,6 +382,7 @@ class CameraListener6:
                 file_name = "object_detec.png"
                 os.chdir(directory_path)
                 cv2.imwrite(file_name, cv_image)
+                play('foto')
                 rospy.loginfo("Image saved successfully as: " + file_name + ".")
                 self.image_saved = True
             except Exception as e:
@@ -494,8 +507,8 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
 
     print('move base completed goal with result ' + str(result_msg))
         
-    complete_message = "Reached my destination"
-    updateMissionDescription(complete_message, mission_location=location)
+    destination_message = "Reached my destination"
+    updateMissionDescription(destination_message, mission_location=location)
     
     ##### Tirar a foto
     # Initialize CameraListener within the takeAPicture function
@@ -516,7 +529,8 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
     rospy.sleep(3)
 
     cv_image = cv_image[:7 * cv_image.shape[0] // 12, :]
-    cv2.imwrite('object_detec.png',cv_image)
+    #cv2.imwrite('object_detec.png',cv_image)
+    
     # Convert BGR to HSV
     hsv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
     
@@ -528,22 +542,20 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
         mask = cv2.inRange(hsv_image, lower_blue, upper_blue)
     
     result = cv2.bitwise_and(cv_image,cv_image, mask= mask)
-    cv2.imshow('result',result)
-    cv2.waitKey(0)
-    cv2.imwrite('object_detec.png',result)
+    #cv2.imshow('result',result)
+    #cv2.waitKey(0)
+    #cv2.imwrite('object_detec.png',result)
+    
     rospy.sleep(1)
     # Find contours for red objects
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    print('CONTOURS',len(contours))
 
     object_count = 0
     new_contours = []
     for contour in contours:
         area = cv2.contourArea(contour)
         if area > 50:
-            new_contours.append(contour)
-    print('newcontours',len(new_contours))
-    
+            new_contours.append(contour)    
     
     gray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
     blur = cv2.medianBlur(gray,5)
@@ -569,8 +581,8 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
     
     
     rospy.sleep(3)
-    end_object_message = "Checking for objects type of mission done, what's my next one?"
-    updateMissionDescription(end_object_message,mission_location=location)
+    complete_message = "Checking for objects type of mission done, what's my next one?"
+    updateMissionDescription(complete_message,mission_location=location)
 
 
 
@@ -602,17 +614,19 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
         # TODO
         return
 
-    #UpdateMissionDescription("Mission complete!! Uff")
+    
     print('move base completed goal with result ' + str(result_msg))
 
     
     # Initialize CameraListener within the takeAPicture function
     camera_listener_instance = camera_listener(location,file_nmbr=1)
-
-    complete_message = "Completed my first trip, lets look in another place"
-    updateMissionDescription(complete_message, mission_location=location)
     # Wait for some time to ensure that the CameraListener has captured the image
     rospy.sleep(5)
+    
+    first_message = "Completed my first trip, lets look in another place"
+    updateMissionDescription(first_message, mission_location=location)
+   
+    
 
     
     #2 localização
@@ -640,18 +654,19 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
         # TODO
         return
 
-    #UpdateMissionDescription("Mission complete!! Uff")
+    
     print('move base completed goal with result ' + str(result_msg))
 
     
     # Initialize CameraListener within the takeAPicture function
     camera_listener_instance = camera_listener(location,file_nmbr=2)
-
-
-    complete_message = "I successfully analized this place aswell"
-    updateMissionDescription(complete_message, mission_location=location)
     # Wait for some time to ensure that the CameraListener has captured the image
     rospy.sleep(5)
+
+    second_message = "I successfully analyzed this place aswell"
+    updateMissionDescription(second_message, mission_location=location)
+
+    
     
     #3ª localização 
     location="bedroom"
@@ -677,17 +692,17 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
         # TODO
         return
 
-    #UpdateMissionDescription("Mission complete!! Uff")
     print('move base completed goal with result ' + str(result_msg))
 
     
     # Initialize CameraListener within the takeAPicture function
     camera_listener_instance = camera_listener(location,file_nmbr=3)
-
-    complete_message = "All the photos are taken, lets check results"
-    updateMissionDescription(complete_message, mission_location=location)
     #Wait for some time to ensure that the CameraListener has captured the image
     rospy.sleep(5)
+
+    third_message = "All the photos are taken, lets check results"
+    updateMissionDescription(third_message, mission_location=location)
+    
 
     #Implementação do YOLO
     model = YOLO('yolov8n.pt')
@@ -757,8 +772,8 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
     # Detections where? X,X,X
     print(has_people)
 
-    complete_message = "According to my calculations..."
-    updateMissionDescription(complete_message, mission_location=location)
+    calculations_message = "According to my calculations..."
+    updateMissionDescription(calculations_message, mission_location=location)
     
     rospy.sleep(2)
     
@@ -769,14 +784,15 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
             people_message = people_message + "The {} has {} people \n".format(room,"" if people else "no")
             print(people_message)
             updateMissionDescription(people_message, mission_location=location)
-            rospy.sleep(5)
+            rospy.sleep(2)
     else:
         people_message = "There isn't anyone home!"
         updateMissionDescription(people_message, mission_location=location)
     
 
     rospy.sleep(3)
-    updateMissionDescription("Checking for humans mission has been completed successfully")
+    complete_message = "Checking for humans mission has been completed successfully"
+    updateMissionDescription(complete_message,mission_location=location)
     # Perform any additional processing or mission planning logic
     print("Mission planning logic after taking a picture.")
     return
@@ -807,8 +823,9 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
         # TODO
         return
 
-    #UpdateMissionDescription("Mission complete!! Uff")
     print('move base completed goal with result ' + str(result_msg))
+    # Wait for some time to ensure that the CameraListener has captured the image
+    rospy.sleep(3)
 
     
     # Initialize CameraListener within the takeAPicture function
@@ -816,8 +833,7 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
 
     scanlaptop_message = "Scanning for laptop presence"
     updateMissionDescription(scanlaptop_message, mission_location=location)
-    # Wait for some time to ensure that the CameraListener has captured the image
-    rospy.sleep(3)
+    
     
     # Load a pretrained YOLOv8n model
     model = YOLO('yolov8n.pt')
@@ -849,8 +865,8 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
         nolaptop_message = "There is no laptop on the desk"
         updateMissionDescription(nolaptop_message,mission_location=location)
     rospy.sleep(4)
-    end_laptop_message = "I have completed one more mission, what's next my Master?"
-    updateMissionDescription(end_laptop_message,mission_location=location) '''
+    complete_message = "I have completed one more mission, what's next my Master?"
+    updateMissionDescription(complete_message,mission_location=location) '''
 
 def searchForCoke(feedback, x, y, z, R, P, Y,location,goal_publisher,camera_listener):
     #MoveTo start
@@ -1045,7 +1061,7 @@ def isTableClean(feedback,goal_publisher, camera_listener):
 
 def main():
     global server
-
+    
     # -------------------------------
     # Initialization
     # -------------------------------
@@ -1181,8 +1197,8 @@ def main():
     
     entry = menu_handler.insert("Kitchen", parent=entry_blueball,
                                 callback=partial(searchForObject,
-                                                 x=1.536717, y=0.002346, z=0,
-                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 x=2.987402, y=0.553971, z=0,
+                                                 R=0, P=0.003182, Y=-0.620476,
                                                  location='Kitchen',
                                                  ball = True,
                                                  color = "blue",
@@ -1191,8 +1207,8 @@ def main():
         
     entry = menu_handler.insert("Bedroom", parent=entry_blueball,
                                 callback=partial(searchForObject,
-                                                 x=1.536717, y=0.002346, z=0,
-                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 x=-3.003071, y=-1.536944, z=0,
+                                                 R=0, P=0.003176, Y=2.376887,
                                                  location='Bedroom',
                                                  ball = True,
                                                  color = "blue",
@@ -1214,8 +1230,8 @@ def main():
     
     entry = menu_handler.insert("Kitchen", parent=entry_redball,
                                 callback=partial(searchForObject,
-                                                 x=1.536717, y=0.002346, z=0,
-                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 x=2.987402, y=0.553971, z=0,
+                                                 R=0, P=0.003182, Y=-0.620476,
                                                  location='Kitchen',
                                                  ball = True,
                                                  color = "red",
@@ -1224,8 +1240,8 @@ def main():
         
     entry = menu_handler.insert("Bedroom", parent=entry_redball,
                                 callback=partial(searchForObject,
-                                                 x=1.536717, y=0.002346, z=0,
-                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 x=-3.003071, y=-1.536944, z=0,
+                                                 R=0, P=0.003176, Y=2.376887,
                                                  location='Bedroom',
                                                  ball = True,
                                                  color = "red",
@@ -1249,8 +1265,8 @@ def main():
     
     entry = menu_handler.insert("Kitchen", parent=entry_bluecube,
                                 callback=partial(searchForObject,
-                                                 x=1.536717, y=0.002346, z=0,
-                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 x=2.987402, y=0.553971, z=0,
+                                                 R=0, P=0.003182, Y=-0.620476,
                                                  location='Kitchen',
                                                  ball = False,
                                                  color = "blue",
@@ -1259,8 +1275,8 @@ def main():
         
     entry = menu_handler.insert("Bedroom", parent=entry_bluecube,
                                 callback=partial(searchForObject,
-                                                 x=1.536717, y=0.002346, z=0,
-                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 x=-3.003071, y=-1.536944, z=0,
+                                                 R=0, P=0.003176, Y=2.376887,
                                                  location='Bedroom',
                                                  ball = False,
                                                  color = "blue",
@@ -1282,8 +1298,8 @@ def main():
     
     entry = menu_handler.insert("Kitchen", parent=entry_redcube,
                                 callback=partial(searchForObject,
-                                                 x=1.536717, y=0.002346, z=0,
-                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 x=2.987402, y=0.553971, z=0,
+                                                 R=0, P=0.003182, Y=-0.620476,
                                                  location='Kitchen',
                                                  ball = False,
                                                  color = "red",
@@ -1292,8 +1308,8 @@ def main():
         
     entry = menu_handler.insert("Bedroom", parent=entry_redcube,
                                 callback=partial(searchForObject,
-                                                 x=1.536717, y=0.002346, z=0,
-                                                 R=0, P=0.003185, Y=-1.565866,
+                                                 x=-3.003071, y=-1.536944, z=0,
+                                                 R=0, P=0.003176, Y=2.376887,
                                                  location='Bedroom',
                                                  ball = False,
                                                  color = "red",
