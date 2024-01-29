@@ -196,9 +196,40 @@ Other navigations:
 - Right press the balloon over THOR to open missions menu, and select option to move to desired room.
 
 ***
-OBJECT SPAWN, DETECTION AND SPECIFIC MISSIONS LEFT HERE.
+
+<br>
 
 ### Object Spawn
+
+The user is able to spawn various predefined objects in various spots in the house by using the code "rosrun robutler_bringup_tp3 spawn_object.py [-l LOCATION] [-o OBJECT]. The command would look something like:
+```
+rosrun robutler_bringup_tp3 spawn_object.py -l on_bed -o sphere_v
+```
+What follows is the list of references used to spawn objects and the respective object:
+
+- sphere_v (Violet Sphere);
+- sphere_r (Red Sphere);
+- sphere_g (Green Sphere);
+- sphere_org (Orange Sphere);
+- sphere_Y (Yellow Sphere);
+- sphere_b (Blue Sphere);
+- cube_r (Red Cube);
+- cube_b (Blue Cube);
+- person_standing (Person Standing up);
+- laptop (open laptop);
+- can_coke (can of coke);
+
+Doing the same for the spawnable spots, we have:
+
+- on_bed (on the bed);
+- on_bed_side_table (on the bed side table);
+- on_kitchen (on the kitchen floor);
+- on_living_room (on the living room floor);
+- on_playground (on the playground floor);
+- on_living_room_table (on the living room table);
+- on_living_room_table2 (another spot on the living room table);
+- on_bedroom_table (on the bedroom table);
+
 
 
 
@@ -214,7 +245,7 @@ THOR's detection module is also equiped to handle more advanced missions, such a
 
 ### Specific Missions
 
-Have you ever wanted to see how your roomba would act if you left it charging for a whole month? Well, THOR will allow you to satisfy this desire, while also providing a first view experience! By selecting the mission "F1 Mode?", THOR will start racing around the room as if it's life depended on it!
+Have you ever wanted to see how your roomba would act if you left it charging for a whole month? Well, THOR will allow you to satisfy this desire, while also providing a first view! By selecting the mission "F1 Mode?", THOR will start racing around the room as if it's life depended on it!
 
 
 ***
