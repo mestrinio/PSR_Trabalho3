@@ -198,20 +198,23 @@ Other navigations:
 ***
 OBJECT SPAWN, DETECTION AND SPECIFIC MISSIONS LEFT HERE.
 
+### Object Spawn
 
-## Specific Missions
 
-The mission manager allows THOR to do various specific missions. He is able to:
-
-- Take a picture of a specific division
-- Search for specific objects and count how many of them there are
-- Detect if there is someone at the house and where they are
-- Race around the house
 
 <br>
 
-To start any given mission, the user needs to Right-click the gray circle above THOR in the RViz window. This will show the missions list and allow the user to select the mission type and objective (example, take a picture of the kitchen).
+### Detection
 
+By analising the images captured by it's cameras, THOR is able to detect a plethora of things. By selecting "Search for object in division" in the mission menu, the user will be able to choose an object for THOR to find in a given division. The object can be balls and cubes of various colors, a coke can and even a laptop. It will also count how many objects of the specified type were found in it's search!
+
+THOR's detection module is also equiped to handle more advanced missions, such as checking if the table is clean, which will check if there are any objects on the table, or if someone is home, which will take him around the house searching for a Human being.
+
+<br>
+
+### Specific Missions
+
+Have you ever wanted to see how your roomba would act if you left it charging for a whole month? Well, THOR will allow you to satisfy this desire, while allowing you to experience the what you would see if you were inside the roomba! By selecting the mission "F1 Mode?", THOR will start racing around the room as if it's life depended on it!
 
 
 ***
