@@ -214,7 +214,7 @@ The user is able to spawn various predefined objects in various spots in the hou
 ```
 rosrun robutler_bringup_tp3 spawn_object.py -l on_bed -o sphere_v
 ```
-Bellow you can find two lists, containing both the code and respective name of all the usable objects and locations.
+Bellow you can find two lists, containing both the code and respective name of all the usable locations and objects.
 
 <br>
 
