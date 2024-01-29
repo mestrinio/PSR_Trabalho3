@@ -216,22 +216,19 @@ What follows is the list of references used to spawn objects and the respective 
 - cube_r (Red Cube);
 - cube_b (Blue Cube);
 - person_standing (Person Standing up);
-- laptop (open laptop);
-- can_coke (can of coke);
+- laptop (Open Laptop);
+- can_coke (Can of Coke);
 
 Doing the same for the spawnable spots, we have:
 
 - on_bed (on the bed);
 - on_bed_side_table (on the bed side table);
+- on_bedroom_table (on the bedroom table);
 - on_kitchen (on the kitchen floor);
 - on_living_room (on the living room floor);
 - on_playground (on the playground floor);
 - on_living_room_table (on the living room table);
 - on_living_room_table2 (another spot on the living room table);
-- on_bedroom_table (on the bedroom table);
-
-
-
 
 <br>
 
