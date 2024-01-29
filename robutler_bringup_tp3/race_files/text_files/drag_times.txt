@@ -4,8 +4,9 @@
 55.60 seconds
 57.91 seconds
 73.89 seconds
-10.00 seconds
+60.00 seconds
 25.43 seconds
 26.69 seconds
 94.79 seconds
 26.75 seconds
+15.06 seconds

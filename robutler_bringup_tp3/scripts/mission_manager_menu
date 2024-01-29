@@ -972,7 +972,7 @@ def isTableClean(feedback,goal_publisher, camera_listener):
         # TODO
         return
     print('move base completed goal with result ' + str(result_msg))
-
+    #rospy.sleep(2)
     # Use Camera_listerner_3
     camera_listener_instance = camera_listener(location)
 

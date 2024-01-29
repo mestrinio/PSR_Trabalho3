@@ -1,6 +1,7 @@
 DWAPlannerROS:
 
 # Robot Configuration Parameters
+  #max_vel_x: 0.40
   max_vel_x: 0.50
   min_vel_x: -0.26
 
@@ -8,43 +9,47 @@ DWAPlannerROS:
   min_vel_y: 0.0
 
 # The velocity when robot is moving in a straight line
+  #max_vel_trans:  0.40
   max_vel_trans:  0.50
-  min_vel_trans:  0.13
+  min_vel_trans:  0.05
 
   #max_vel_theta: 1.82
-  max_vel_theta: 1.5
+  max_vel_theta: 2
   min_vel_theta: 0.1
   #min_vel_theta: 0.1
 
-  acc_lim_x: 2.5
+  acc_lim_x: 1.5
   acc_lim_y: 0.0
-  acc_lim_theta: 1.5 
+  acc_lim_theta: 0.8
   #acc_lim_theta: 0.4 
 
 # Goal Tolerance Parameters
-  xy_goal_tolerance: 0.1
-  yaw_goal_tolerance: 0.12 #13
+  xy_goal_tolerance: 0.20     #changes here for table mission
+  yaw_goal_tolerance: 0.01
   latch_xy_goal_tolerance: false
 
 # Forward Simulation Parameters
-  sim_time: 2.0
-  vx_samples: 20
+  sim_time: 5.0
+  vx_samples: 30
   vy_samples: 0
-  vth_samples: 40
+  vth_samples: 50
   #controller_frequency: 10.0
-  controller_frequency: 4.0
+  controller_frequency: 20.0
 
 # Trajectory Scoring Parameters
+  #aumentei estes                               
+  # path_distance_bias: 40.0
+  # goal_distance_bias: 40.0 ASSIM ESTA BOM, MAS AS FOTOS NAO ESTAO PERFEITAS
   path_distance_bias: 22.0
-  goal_distance_bias: 15.0
-  occdist_scale: 0.02
-  forward_point_distance: 0.325
-  stop_time_buffer: 0.2
+  goal_distance_bias: 22.0    # TESTAR AQUI A NAVEGAÇÃO
+  occdist_scale: 0.025
+  forward_point_distance: 0.4
+  stop_time_buffer: 0.1
   scaling_speed: 0.25
   max_scaling_factor: 0.2
 
 # Oscillation Prevention Parameters
-  oscillation_reset_dist: 0.05
+  oscillation_reset_dist: 0.3
 
 # Debugging
   publish_traj_pc : true
