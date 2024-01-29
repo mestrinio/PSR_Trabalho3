@@ -39,6 +39,7 @@ h_mode_last = 0
 
 current_mission_marker = None
 
+lord_message = "It shall be done, my Lord."
 
 
 def enableCb(feedback):
@@ -172,8 +173,7 @@ def updateMissionDescription(mission_name, mission_location, complete_message=No
 
         # Create a new text marker for the mission description
         mission_text_marker, _ = makeTextMarker("text_mission_description", mission_name)
-        text_to_speech(mission_name)
-        txt_speech(mission_name)
+        
         mission_text_marker.pose.position.z = 1  # Adjust the height of the text
 
         # Insert the new mission text marker
@@ -182,6 +182,10 @@ def updateMissionDescription(mission_name, mission_location, complete_message=No
 
         # Update the global variable
         current_mission_marker = mission_text_marker
+        
+        # Text to speech the marker
+        text_to_speech(mission_name)
+        txt_speech(mission_name)
     
 def create_masks(image):
         
@@ -420,7 +424,7 @@ def takeAPicture(feedback, x, y, z, R, P, Y, location, goal_publisher, camera_li
     # Initialize CameraListener within the takeAPicture function
     camera_listener_instance = camera_listener(location)
 
-    complete_message = "Mission complete!! Picture taken sucessfully!!"
+    complete_message = "Mission complete! Picture taken sucessfully!"
     updateMissionDescription(complete_message, mission_location=location)
     # Wait for some time to ensure that the CameraListener has captured the image
     rospy.sleep(5)
@@ -459,12 +463,17 @@ def moveTo(feedback, x, y, z, R, P, Y, location, goal_publisher):
 
     print('move base completed goal with result ' + str(result_msg))
         
-    complete_message = "Mission complete!! Uff"
+    complete_message = "Mission complete! Uff"
     updateMissionDescription(complete_message, mission_location=location)
 
 
 
 def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publisher, camera_listener):
+    
+    
+    updateMissionDescription(lord_message, mission_location=location)
+    rospy.sleep(2)
+    
     
     # RED mask
     lower_red = np.array([0, 100, 100])  
@@ -509,7 +518,7 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
         
     destination_message = "Reached my destination"
     updateMissionDescription(destination_message, mission_location=location)
-    
+    rospy.sleep(3)
     ##### Tirar a foto
     # Initialize CameraListener within the takeAPicture function
     camera_listener_instance = camera_listener(location)
@@ -545,16 +554,17 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
     #cv2.imshow('result',result)
     #cv2.waitKey(0)
     #cv2.imwrite('object_detec.png',result)
-    
+    cv2.imshow('mask',mask)
+    cv2.waitKey(0)
     rospy.sleep(1)
     # Find contours for red objects
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
+    
     object_count = 0
     new_contours = []
     for contour in contours:
         area = cv2.contourArea(contour)
-        if area > 50:
+        if area > 300:
             new_contours.append(contour)    
     
     gray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
@@ -562,20 +572,23 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
     
     spheres = cv2.HoughCircles(blur,cv2.HOUGH_GRADIENT,1.3,20,
                             param1=150,param2=39,minRadius=80,maxRadius=150)
-    spheres = np.uint16(np.around(spheres))   
-    print('spheres',spheres.size)
-    
+    try:
+        spheres = np.uint16(np.around(spheres))   
+        print('spheres',spheres.size)
+        spheres_size = spheres.size
+    except:
+        spheres_size = 0
     
     if new_contours:
         if is_ball:
             if spheres is not None:
                 
-                object_count = spheres.size/3
+                object_count = spheres_size/3
             updateMissionDescription("Found {} {} balls".format(int(object_count),color), mission_location=location)
         else:
             object_count = len(new_contours)
             if spheres is not None:
-                object_count = object_count - spheres.size/3
+                object_count = object_count - spheres_size/3
             updateMissionDescription("Found {} {} cubes".format(int(object_count),color), mission_location=location)
         
     
@@ -870,6 +883,7 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
 
 def searchForCoke(feedback, x, y, z, R, P, Y,location,goal_publisher,camera_listener):
     #MoveTo start
+    
     print('First, moving to ' + location)
     updateMissionDescription("Moving to the {} to check if the laptop is there".format(location), mission_location=location)
     p = Pose()
@@ -948,7 +962,7 @@ def searchForCoke(feedback, x, y, z, R, P, Y,location,goal_publisher,camera_list
     # cv2.waitKey(1)
     
     rospy.sleep(5)
-    end_laptop_message = "I have completed one more mission, what's next my Master?"
+    end_laptop_message = "I have completed one more mission, what's my next assignment?"
     updateMissionDescription(end_laptop_message,mission_location=location)
 
 
@@ -1037,13 +1051,13 @@ def isTableClean(feedback,goal_publisher, camera_listener):
     similarity = 1 - errorL2 / (roi_A.shape[0] * roi_A.shape[1])
     print("Similarity =", similarity)
 
-    if similarity >= 0.85:
-        complete_message = "There aren't any object on the table\nIts clean boss!!"
+    if similarity >= 0.83:
+        complete_message = "There aren't any object on the table\nIts clean boss!"
         updateMissionDescription(complete_message, mission_location=location)
         print("TABLE IS CLEAN")
     
     else:
-        complete_message = "There are objects on the table...\nIt needs cleaning!!!"
+        complete_message = "There are objects on the table...\nIt needs cleaning!"
         updateMissionDescription(complete_message, mission_location=location)
         print("TABLE WITH OBJECTS")
     rospy.sleep(5)
@@ -1058,6 +1072,155 @@ def isTableClean(feedback,goal_publisher, camera_listener):
     #cv2.imshow("ROI B", roi_B)
     cv2.waitKey(0)
     return
+
+
+
+def storytelling(feedback,goal_publisher):
+    
+    #MoveTo start
+    location="First_Frame"
+    print('First, moving to ' + location)
+    updateMissionDescription("Oh, you're bored and want me to tell you a story? \nAlright, let me just get ready", mission_location=location)
+    p1 = Pose()
+    p1.position = Point(x=3.172562, y=-0.001934, z=-0.001006)
+    q1 = quaternion_from_euler(0, 0.003169, -0.292047)  # From euler angles (rpy) to quaternion
+    p1.orientation = Quaternion(x=q1[0], y=q1[1], z=q1[2], w=q1[3])
+
+    #1 localização
+
+    ps1 = PoseStamped()
+    ps1.pose = p1
+    ps1.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
+
+    
+    goal_publisher.publish(ps1)
+
+    # TODO know when move is finished
+    try:
+        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+    except:
+        print('Timeout waiting for moveto')
+        # TODO
+        return
+
+    
+    print('move base completed goal with result ' + str(result_msg))
+    
+    first_message = "This is Luís, also known as 'sapo', he is a mechanical engineer."
+    updateMissionDescription(first_message, mission_location=location)
+
+    
+    #2 localização
+
+    location="Second_Frame"
+    print('Now moving to: ' + location)
+    updateMissionDescription("vroom", mission_location=location)
+    
+    p2 = Pose()
+    p2.position = Point(x=6.245474, y=-1.511837, z=-0.001006)
+    q2 = quaternion_from_euler(0 , 0.003169, 2.786313)  # From euler angles (rpy) to quaternion
+    p2.orientation = Quaternion(x=q2[0], y=q2[1], z=q2[2], w=q2[3])
+
+    ps2 = PoseStamped()
+    ps2.pose = p2
+    ps2.header = Header(frame_id='map', stamp=rospy.Time.now())
+
+    print('Arrived at second frame')
+    goal_publisher.publish(ps2)
+
+    # TODO know when move is finished
+    try:
+        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+    except:
+        print('Timeout waiting for moveto')
+        # TODO
+        return
+
+    
+    print('move base completed goal with result ' + str(result_msg))
+
+
+    second_message = "And this is Pedro, also known as Mestre, he is also a mechanical engineer"
+    updateMissionDescription(second_message, mission_location=location)
+
+    
+    
+    #3ª localização 
+    location="Third_Frame"
+    print('Now moving to : ' + location)
+    updateMissionDescription("SKRRRR", mission_location=location)
+    p3 = Pose()
+    p3.position = Point(x=-2.405233, y=-0.992072, z=-0.001006)
+    q3 = quaternion_from_euler(0 , 0.003181, 2.740030)  # From euler angles (rpy) to quaternion
+    p3.orientation = Quaternion(x=q3[0], y=q3[1], z=q3[2], w=q3[3])
+
+    ps3 = PoseStamped()
+    ps3.pose = p3
+    ps3.header = Header(frame_id='map', stamp=rospy.Time.now())
+
+    print('Arrived at: ' + location)
+    goal_publisher.publish(ps3)
+
+    # TODO know when move is finished
+    try:
+        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+    except:
+        print('Timeout waiting for moveto')
+        # TODO
+        return
+
+    print('move base completed goal with result ' + str(result_msg))
+
+
+
+    third_message = "And this is Afonso, also known as Nuno, and yes he is also a mechanical engineer."
+    updateMissionDescription(third_message, mission_location=location)
+    
+    
+        
+    
+    #4ª localização 
+    location="Fourth_Frame"
+    print('Now moving to : ' + location)
+    updateMissionDescription("weeeeeeeeeeeeeeee", mission_location=location)
+    p4 = Pose()
+    p4.position = Point(x=-2.405233, y=-0.992072, z=-0.001006)
+    q4 = quaternion_from_euler(0 , 0.003181, 2.740030)  # From euler angles (rpy) to quaternion
+    p4.orientation = Quaternion(x=q4[0], y=q4[1], z=q4[2], w=q4[3])
+
+    ps4 = PoseStamped()
+    ps4.pose = p4
+    ps4.header = Header(frame_id='map', stamp=rospy.Time.now())
+
+    print('Arrived at: ' + location)
+    goal_publisher.publish(ps4)
+
+    # TODO know when move is finished
+    try:
+        result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+    except:
+        print('Timeout waiting for moveto')
+        # TODO
+        return
+
+    print('move base completed goal with result ' + str(result_msg))
+
+
+
+    fourth_message = "And this is THOR, also know as Trully Hardworking Outstanding Robot,\ntheir magnificent creation..."
+    updateMissionDescription(fourth_message, mission_location=location)
+    
+    rospy.sleep(10)
+    fifth_message = "The End."
+    updateMissionDescription(fifth_message, mission_location=location)
+    rospy.sleep(5)
+    
+    complete_message = "I know it was an awesome story, what shall I do next?"
+    updateMissionDescription(complete_message, mission_location=location)
+    
+
+
+
 
 def main():
     global server
@@ -1078,6 +1241,7 @@ def main():
     h_first_entry = menu_handler.insert("Move to")
     h_second_entry = menu_handler.insert("Take a Picture")
     h_third_entry = menu_handler.insert("Search for object in division")
+    h_sixth_entry = menu_handler.insert("Tell me a story")
     #h_fourth_entry = menu_handler.insert("Is Someone Home?")
     # h_fifth_entry = menu_handler.insert("Is table clean?",
     #                             callback=partial(isTableClean,
@@ -1326,6 +1490,17 @@ def main():
     #                             callback=partial(searchForPerson,
     #                                              goal_publisher=goal_publisher,
     #                                              camera_listener=CameraListener2))
+    
+        
+    ############################### STORY TELLING #######################
+
+
+    entry = menu_handler.insert("Tell a story", parent=h_sixth_entry,
+                                callback=partial(storytelling,
+                                                  goal_publisher=goal_publisher))
+    
+
+    
     
     makeMenuMarker("marker1")
 
