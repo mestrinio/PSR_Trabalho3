@@ -1036,7 +1036,7 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
     ps = PoseStamped()
     ps.pose = p
     ps.header = Header(frame_id='map', stamp=rospy.Time.now())  
-    print('First looking in : ' + location)
+    print('Making sure Im in : ' + location)
     goal_publisher.publish(ps)     
 
     # TODO know when move is finished
@@ -1046,7 +1046,7 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         print('Timeout waiting for moveto')
         # TODO
         return
-    print('move base completed goal with result ' + str(result_msg))
+    #print('move base completed goal with result ' + str(result_msg))
     
     ########################################### 8 TRACK RACE ######################################
     if track_nmbr == "8":
@@ -1116,7 +1116,12 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
             return
         print('move base completed goal with result ' + str(result_msg))
         updateMissionDescription("This first turn is a little complicated, but I'll make it!", mission_location=location)
+        checkpoint_time = time.time()
+        checkpoint1 = checkpoint_time - start_time
+        minutes1, seconds1 = divmod(checkpoint1,60)
+        print(f"Reached the first checkpoint: {int(minutes1)} minutes {int(seconds1):.2f} seconds")
         rospy.sleep(1)
+
 
 
     ## SECOND POINT
@@ -1141,6 +1146,9 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
             # TODO
             return
         print('move base completed goal with result ' + str(result_msg))
+        checkpoint2 = start_time - checkpoint_time
+        minutes2, seconds2 = divmod(checkpoint2,60)
+        print(f"Reached the second checkpoint: {int(minutes2)} minutes {int(seconds2):.2f} seconds")
         rospy.sleep(1)
         updateMissionDescription("Looks like Im doing a good time, let's keep this up", mission_location=location)
 
@@ -1167,6 +1175,9 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
             # TODO
             return
         print('move base completed goal with result ' + str(result_msg))
+        checkpoint3 = start_time - checkpoint_time
+        minutes3, seconds3 = divmod(checkpoint3,60)
+        print(f"Reached the third checkpoint: {int(minutes3)} minutes {int(seconds3):.2f} seconds")
         rospy.sleep(1)
         updateMissionDescription("Turbo : ON ", mission_location=location)
 
@@ -1191,6 +1202,9 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
             # TODO
             return
         print('move base completed goal with result ' + str(result_msg))
+        checkpoint4 = start_time - checkpoint_time
+        minutes4, seconds4 = divmod(checkpoint4,60)
+        print(f"Reached the fourth checkpoint: {int(minutes4)} minutes {int(seconds4):.2f} seconds")
         rospy.sleep(1)
         updateMissionDescription("We are almost there !!", mission_location=location)
 
@@ -1228,27 +1242,17 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         print(f"Race completed: {int(minutes)} minutes {int(seconds):.2f} seconds")
         complete_message = "MADE ITTTTT !!!! It only took {}:{:02d}s.  What a runn".format(int(minutes),int(seconds) % 100)
         updateMissionDescription(complete_message, mission_location=location)
-        rospy.sleep(7)
-        #Highscore update data treatment
-        try:
-            with open('/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/race_files/text_files/8_track_times.txt', 'r') as file:
-                times = [float(line.split()[0]) for line in file.readlines()]
+        rospy.sleep(5)
 
-                if times:
-                    high_score = min(times)
-                    h_minutes, h_seconds = divmod(high_score,60)
-                    print(f"High Score: {int(h_minutes)} minutes and {h_seconds:.2f} seconds")               
-                else:
-                    print("No race times recorded yet.")
-        except FileNotFoundError:
-            print("I didnt find the corresponding file.")
-        if high_score == elapsed_time:
-            updateMissionDescription("I can't believe it I just broke the record!!!!!! *happy noises*", mission_location=location)
+        if elapsed_time < high_score:
+            updateMissionDescription("JUST BROKE THE RECORD IN THIS TRACK!!", mission_location=location)
         else:
-            updateMissionDescription("Couldn't beat my best time, I need to practice more!!", mission_location=location)
+            time_diff = abs(high_score - elapsed_time) 
+            updateMissionDescription("Couldn't beat my best time, I need to practice more!! I was {} seconds away from the record time".format(int(time_diff)), mission_location=location)
         rospy.sleep(5)   #Controlo de erros
+    
     elif track_nmbr == "0":
-         ################################## Pista circular####################
+         ################################# OVAL RACE #########################################
         location = "spawn"
         #Previous Highscore data treatment
         try:
@@ -1295,7 +1299,7 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
     
         # Deslocation start
         p1 = Pose()
-        p1.position = Point(x=3.030721, y=0.166980, z=0)
+        p1.position = Point(x=3.540061, y=-0.088009, z=0)
         q1 = quaternion_from_euler(-0.000003 ,0.003168 , -1.599489)  # From euler angles (rpy) to quaternion
         p1.orientation = Quaternion(x=q1[0], y=q1[1], z=q1[2], w=q1[3])
 
@@ -1303,7 +1307,7 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         ps1.pose = p1
         ps1.header = Header(frame_id='map', stamp=rospy.Time.now())  
 
-        print('First looking in : ' + location)
+        #print('First looking in : ' + location)
         goal_publisher.publish(ps1)     
 
         # TODO know when move is finished
@@ -1313,9 +1317,18 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
             print('Timeout waiting for moveto')
             # TODO
             return
-        print('move base completed goal with result ' + str(result_msg))
-        updateMissionDescription("I love to drift in the turn !", mission_location=location)
+        #print('move base completed goal with result ' + str(result_msg))
+        checkpoint_time = time.time()
+        checkpoint1 = checkpoint_time - start_time
+        minutes1, seconds1 = divmod(checkpoint1,60)
+        print(f"Reached the first checkpoint: {int(minutes1)} minutes {int(seconds1):.2f} seconds")
+        if checkpoint_time < 40:
+            updateMissionDescription("I love to drift in the turn !", mission_location=location)
+        else:
+            updateMissionDescription("That was a bad start..Let's see if I can make it up!", mission_location=location)
+
         rospy.sleep(1)
+
       
         ## Second point ---- ajustar aqui
         p3 = Pose()
@@ -1327,7 +1340,7 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         ps3.pose = p3
         ps3.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
 
-        print('\n3 looking in : ' + location)
+        #print('\n3 looking in : ' + location)
         goal_publisher.publish(ps3)     
 
         # TODO know when move is finished
@@ -1337,9 +1350,14 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
             print('Timeout waiting for moveto')
             # TODO
             return
-        print('move base completed goal with result ' + str(result_msg))
+        #print('move base completed goal with result ' + str(result_msg))
         rospy.sleep(1)
         updateMissionDescription("Catxau", mission_location=location)
+        checkpoint2 = start_time - checkpoint_time
+        minutes2, seconds2 = divmod(checkpoint2,60)
+        print(f"\nReached the second checkpoint: {int(minutes2)} minutes {int(seconds2):.2f} seconds")
+
+
 
         ## Third point 
         p4 = Pose()
@@ -1351,7 +1369,7 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         ps4.pose = p4
         ps4.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
 
-        print('\n4 looking in : ' + location)
+        #print('\n4 looking in : ' + location)
         goal_publisher.publish(ps4)     
 
         # TODO know when move is finished
@@ -1361,7 +1379,11 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
             print('Timeout waiting for moveto')
             # TODO
             return
-        print('move base completed goal with result ' + str(result_msg))
+        #print('move base completed goal with result ' + str(result_msg))
+        
+        checkpoint3 = start_time - checkpoint_time
+        minutes3, seconds3 = divmod(checkpoint3,60)
+        print(f"Reached the third checkpoint: {int(minutes3)} minutes {int(seconds3):.2f} seconds")
         rospy.sleep(1)
         updateMissionDescription("One last push !!", mission_location=location)
 
@@ -1385,7 +1407,7 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
             print('Timeout waiting for moveto')
             # TODO
             return
-        print('move base completed goal with result ' + str(result_msg))
+        #print('move base completed goal with result ' + str(result_msg))
         
         end_time = time.time()
         elapsed_time = end_time - start_time
@@ -1398,29 +1420,17 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         print(f"Race completed: {int(minutes)} minutes {int(seconds):.2f} seconds")
         complete_message = "LET'S GOOOO !!!! It only took {}:{:02d}s.  I love this track".format(int(minutes),int(seconds) % 100)
         updateMissionDescription(complete_message, mission_location=location)
-        rospy.sleep(7)
-        #Highscore update data treatment
-        try:
-            with open('/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/race_files/text_files/oval_track_times.txt', 'r') as file:
-                times = [float(line.split()[0]) for line in file.readlines()]
-
-                if times:
-                    high_score = min(times)
-                    h_minutes, h_seconds = divmod(high_score,60)
-                    print(f"High Score: {int(h_minutes)} minutes and {h_seconds:.2f} seconds")               
-                else:
-                    print("No race times recorded yet.")
-                #aqui para fazer a comparação talvez dar append para uma lista
-        except FileNotFoundError:
-            print("I didnt find the corresponding file.")
-        if high_score == elapsed_time:
-            updateMissionDescription("I can't believe it I just broke the record!!!!!! *happy noises*", mission_location=location)
+        rospy.sleep(4)
+        
+        if elapsed_time < high_score:
+            updateMissionDescription("JUST BROKE THE RECORD IN THIS TRACK!!", mission_location=location)
         else:
-            updateMissionDescription("Couldn't beat my best time, I need to practice more!!", mission_location=location)
-        rospy.sleep(5)   #Controlo de erros
+            time_diff = abs(high_score - elapsed_time)  
+            updateMissionDescription("Couldn't beat my best time, I need to practice more!! I was {} seconds away from the record time".format(int(time_diff)), mission_location=location)
 
+        rospy.sleep(5)   #Controlo de erros
     else:
-        ### Drag race 
+        ########################################## Drag race ############################################ 
         location = "spawn"
         #Previous Highscore data treatment
         try:
@@ -1447,7 +1457,7 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         cv2.imshow("Race Track", track)
         cv2.waitKey(6000)
         cv2.destroyAllWindows()
-        rospy.sleep(6)
+        rospy.sleep(5)
         
         updateMissionDescription("In this track I can really put my speed to test. I am speed!!", mission_location=location)
         rospy.sleep(5)
@@ -1496,29 +1506,20 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         print(elapsed_time,"Contagem do tempo")
 
         print(f"Race completed: {int(minutes)} minutes {int(seconds):.2f} seconds")
-        complete_message = "MADE ITTTTT !!!! It only took {}:{:02d}s.  What a runn".format(int(minutes),int(seconds) % 100)
+        complete_message = "That was wild, my time was {}:{:02d}s.  Love this fast race!".format(int(minutes),int(seconds) % 100)
         updateMissionDescription(complete_message, mission_location=location)
-        rospy.sleep(7)
-        #Highscore update data treatment
-        try:
-            with open('/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/race_files/text_files/drag_times.txt', 'r') as file:
-                times = [float(line.split()[0]) for line in file.readlines()]
+        rospy.sleep(4)
 
-                if times:
-                    high_score = min(times)
-                    h_minutes, h_seconds = divmod(high_score,60)
-                    print(f"High Score: {int(h_minutes)} minutes and {h_seconds:.2f} seconds")               
-                else:
-                    print("No race times recorded yet.")
-        except FileNotFoundError:
-            print("I didnt find the corresponding file.")
-        if high_score == elapsed_time:
-            updateMissionDescription("I can't believe it I just broke the record!!!!!! *happy noises*", mission_location=location)
+        if elapsed_time < high_score:
+            updateMissionDescription("I can't believe it I just broke the record!!!!!! Family power", mission_location=location)
         else:
-            updateMissionDescription("Couldn't beat my best time, I need to practice more!!", mission_location=location)
-        rospy.sleep(5)   #Controlo de erros
+            time_diff = abs(high_score - elapsed_time) 
+            if time_diff > 1:
+                updateMissionDescription("Couldn't beat my best time, I need to practice more!! I was {} seconds away from the record time".format(int(time_diff)), mission_location=location)
+            else:
+                updateMissionDescription("Couldn't beat my best time, It was so so close!! I was less than a second away from the record time", mission_location=location)
 
-    #Meter um iff a dizer se foi ou não o highscore
+        rospy.sleep(5)   #Controlo de erros
 
 def main():
     global server

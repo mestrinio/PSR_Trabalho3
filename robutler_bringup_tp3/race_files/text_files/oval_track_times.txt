@@ -1,2 +1,8 @@
 158.37 seconds
 180.92 seconds
+135.19 seconds
+113.00 seconds
+132.27 seconds
+103.57 seconds
+177.64 seconds
+113.15 seconds
