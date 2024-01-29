@@ -25,12 +25,12 @@
 
 
 
-<!-- PROJECT LOGO -->
+<!-- PROJECT LOGO 
 <br />
 
   <a href="https://github.com/mestrinio/PSR_Trabalho3/graphs/">
     <img src="images/logo.png" alt="Logo" width="550" height="350">
-  </a>
+  </a> -->
 
 <h3 align="center">PSR - Trabalho Prático 3</h3>
 <h3 align="center">THOR - Trully Hardworking Outstanding Robot</h3>
