@@ -199,6 +199,15 @@ Other navigations:
 OBJECT SPAWN, DETECTION AND SPECIFIC MISSIONS LEFT HERE.
 
 
+## Specific Missions
+
+The mission manager allows THOR to do various specific missions. He is able to:
+
+- Take a picture of a specific division
+- Search for specific objects and count how many of them there are
+- Detect if there is someone at the house and where they are
+- Race around the house
+
 
 
 
