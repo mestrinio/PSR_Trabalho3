@@ -208,7 +208,9 @@ The mission manager allows THOR to do various specific missions. He is able to:
 - Detect if there is someone at the house and where they are
 - Race around the house
 
+<br>
 
+To start any given mission, the user needs to Right-click the gray circle above THOR in the RViz window. This will show the missions list and allow the user to select the mission type and objective (example, take a picture of the kitchen).
 
 
 
