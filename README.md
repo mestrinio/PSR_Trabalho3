@@ -214,7 +214,7 @@ THOR's detection module is also equiped to handle more advanced missions, such a
 
 ### Specific Missions
 
-Have you ever wanted to see how your roomba would act if you left it charging for a whole month? Well, THOR will allow you to satisfy this desire, while allowing you to experience the what you would see if you were inside the roomba! By selecting the mission "F1 Mode?", THOR will start racing around the room as if it's life depended on it!
+Have you ever wanted to see how your roomba would act if you left it charging for a whole month? Well, THOR will allow you to satisfy this desire, while also providing a first view experience! By selecting the mission "F1 Mode?", THOR will start racing around the room as if it's life depended on it!
 
 
 ***
