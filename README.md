@@ -205,25 +205,31 @@ Other navigations:
 
 ### Object Spawn
 
-The user is able to spawn various predefined objects in various spots in the house by using the code "rosrun robutler_bringup_tp3 spawn_object.py [-l LOCATION] [-o OBJECT]. The command would look something like:
+The user is able to spawn various predefined objects in various spots in the house by using the following structure "rosrun robutler_bringup_tp3 spawn_object.py [-l LOCATION] [-o OBJECT]. The command would look something like:
 ```
 rosrun robutler_bringup_tp3 spawn_object.py -l on_bed -o sphere_v
 ```
-What follows is the list of references used to spawn objects and the respective object:
+Bellow you can find two lists, containing both the code and respective name of all the usable objects and locations.
+<details>
+  <summary>List of spawnable objects</summary>
 
-- sphere_v (Violet Sphere);
-- sphere_r (Red Sphere);
-- sphere_g (Green Sphere);
-- sphere_org (Orange Sphere);
-- sphere_Y (Yellow Sphere);
-- sphere_b (Blue Sphere);
-- cube_r (Red Cube);
-- cube_b (Blue Cube);
-- person_standing (Person Standing up);
-- laptop (Open Laptop);
-- can_coke (Can of Coke);
+  - sphere_v (Violet Sphere);
+  - sphere_r (Red Sphere);
+  - sphere_g (Green Sphere);
+  - sphere_org (Orange Sphere);
+  - sphere_Y (Yellow Sphere);
+  - sphere_b (Blue Sphere);
+  - cube_r (Red Cube);
+  - cube_b (Blue Cube);
+  - person_standing (Person Standing up);
+  - laptop (Open Laptop);
+  - can_coke (Can of Coke);
+</details>
 
-Doing the same for the spawnable spots, we have:
+<br>
+
+<details>
+  <summary>List of spawnable locations</summary>
 
 - on_bed (on the bed);
 - on_bed_side_table (on the bed side table);
@@ -233,6 +239,7 @@ Doing the same for the spawnable spots, we have:
 - on_playground (on the playground floor);
 - on_living_room_table (on the living room table);
 - on_living_room_table2 (another spot on the living room table);
+</details>
 
 <br>
 
