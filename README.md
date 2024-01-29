@@ -196,6 +196,7 @@ Other navigations:
 - Right press the balloon over THOR (as seen in the picture bellow) to open missions menu, and select option to move to desired room.
 
   <a href="https://github.com/mestrinio/PSR_Trabalho3/graphs/">
+  <div align="center">
     <img src="images/MissionMenu.png" alt="MissionMenu" width="550" height="350">
   </a>
 ***
