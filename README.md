@@ -193,8 +193,11 @@ rosrun robutler_bringup_tp3 teleop_keypressteste
 Other navigations:
 
 - Using RViz select option to move to 2d point.
-- Right press the balloon over THOR to open missions menu, and select option to move to desired room.
+- Right press the balloon over THOR (as seen in the picture bellow) to open missions menu, and select option to move to desired room.
 
+  <a href="https://github.com/mestrinio/PSR_Trabalho3/graphs/">
+    <img src="images/MissionMenu.png" alt="MissionMenu" width="550" height="350">
+  </a>
 ***
 
 <br>
