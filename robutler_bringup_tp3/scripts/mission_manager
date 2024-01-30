@@ -487,13 +487,13 @@ def takeAPicture(feedback, x, y, z, R, P, Y, location, goal_publisher, camera_li
         return
 
     #UpdateMissionDescription("Mission complete!! Uff")
-    print('move base completed goal with result ' + str(result_msg))
+    #print('Deslocation complete ' + str(result_msg))
 
     
     # Initialize CameraListener within the takeAPicture function
     camera_listener_instance = camera_listener(location)
 
-    complete_message = "Mission complete! Picture taken sucessfully!"
+    complete_message = "Mission complete! Picture taken successfully!"
     updateMissionDescription(complete_message, mission_location=location)
     # Wait for some time to ensure that the CameraListener has captured the image
     rospy.sleep(5)
