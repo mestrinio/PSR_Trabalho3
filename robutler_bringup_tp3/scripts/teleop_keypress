@@ -5,6 +5,11 @@ from geometry_msgs.msg import Twist
 import sys
 import select
 import os
+from pynput import keyboard
+import multiprocessing
+
+
+
 if os.name == 'nt':
     import msvcrt
     import time
@@ -15,7 +20,7 @@ else:
 BURGER_MAX_LIN_VEL = 0.22
 BURGER_MAX_ANG_VEL = 2.84
 
-WAFFLE_MAX_LIN_VEL = 0.2
+WAFFLE_MAX_LIN_VEL = 1.0
 WAFFLE_MAX_ANG_VEL = 1.0
 
 LIN_VEL_STEP_SIZE = 0.2
@@ -33,8 +38,7 @@ W to move forwards
 S to full stop
 X to Reverse
 A or D to turn LEFT/RIGHT
-
-There are 5 levels of velocity both for linear and angular.
+T for TURBOOOOOOOOOOO
 
 CTRL-C to exit
 """
@@ -42,6 +46,8 @@ CTRL-C to exit
 e = """
 Communications Failed
 """
+
+
 
 
 def getKey():
@@ -115,6 +121,28 @@ def checkAngularLimitVelocity(vel):
 
     return vel
 
+def on_press_queue(queue):  
+    def on_press(key):
+        try:
+            queue.put(key.char)
+        except AttributeError:
+            pass
+    return on_press
+
+def on_release_queue(queue):
+    def on_release(key):
+        try:
+            queue.put('n'+key.char)
+        except AttributeError:
+            pass
+    return on_release
+
+def keyboard_listener(queue):
+    with keyboard.Listener(on_press=on_press_queue(queue),on_release=on_release_queue(queue)) as listener:
+        listener.join()
+
+
+
 
 if __name__ == "__main__":
     if os.name != 'nt':
@@ -134,59 +162,99 @@ if __name__ == "__main__":
     try:
         print(msg)
         while not rospy.is_shutdown():
-            key = getKey()
-            if key == 'w':
-                target_linear_vel = checkLinearLimitVelocity(target_linear_vel + LIN_VEL_STEP_SIZE)
-                status = status + 1
-                print(vels(target_linear_vel, target_angular_vel))
-            if key == 't':
-                target_linear_vel = 5.0
-                status = status + 1
-            elif key == 'x':
-                target_linear_vel = checkLinearLimitVelocity(target_linear_vel - LIN_VEL_STEP_SIZE)
-                status = status + 1
-                print(vels(target_linear_vel, target_angular_vel))
-            elif key == 'a':
-                target_angular_vel = checkAngularLimitVelocity(target_angular_vel + ANG_VEL_STEP_SIZE)
-                status = status + 1
-                print(vels(target_linear_vel, target_angular_vel))
-            elif key == 'd':
-                target_angular_vel = checkAngularLimitVelocity(target_angular_vel - ANG_VEL_STEP_SIZE)
-                status = status + 1
-                print(vels(target_linear_vel, target_angular_vel))
-            elif key == ' ' or key == 's' or key == None:
-                target_linear_vel = 0.0
-                control_linear_vel = 0.0
-                target_angular_vel = 0.0
-                control_angular_vel = 0.0
-                print(vels(target_linear_vel, target_angular_vel))
-            elif key == 'm':   #para a velocidade angular mas continuar a linear
-                target_angular_vel = 0.0
-                print(vels(target_linear_vel, target_angular_vel))
-
-            else:
-                if (key == '\x03'):
+            queue = multiprocessing.Manager().Queue()
+            
+            process = multiprocessing.Process(target=keyboard_listener,args=(queue,))
+            process.start()
+            while True:
+                res = queue.get()
+                print('AQUI           ',res)
+                if res == 'w':
+                    control_linear_vel = 1.0
+                elif res == 'nw':
+                    control_linear_vel = 0.0
+                elif res == 's':
+                    control_linear_vel = -1.0
+                elif res == 'ns':
+                    control_linear_vel = 0.0
+                elif res == 'd':
+                    control_angular_vel = -1.0
+                elif res == 'nd':
+                    control_angular_vel = 0.0
+                elif res == 'a':
+                    control_angular_vel = 1.0
+                elif res == 'na':
+                    control_angular_vel = 0.0
+                elif res == 'q':
                     break
+                    
+                else:
+                    pass
+                if status == 20:
+                    print(msg)
+                    status = 0
 
-            if status == 20:
-                print(msg)
-                status = 0
+                twist = Twist()
+                print('ANGULAR           ',control_angular_vel)
+                print('LINEAR         ',control_linear_vel)
+                twist.linear.x = control_linear_vel
+                twist.linear.y = 0.0
+                twist.linear.z = 0.0
+                
+                twist.angular.x = 0.0
+                twist.angular.y = 0.0
+                twist.angular.z = control_angular_vel
+    
+                pub.publish(twist)
 
-            twist = Twist()
+            process.terminate()
+            print('terminatings')
+            break
 
-            control_linear_vel = makeSimpleProfile(control_linear_vel, target_linear_vel, (LIN_VEL_STEP_SIZE/2.0))
-            twist.linear.x = control_linear_vel
-            twist.linear.y = 0.0
-            twist.linear.z = 0.0
+                    
+                
+                        
+            #if keyboard.is_pressed("w") and keyboard.is_pressed("d"):
+            #    target_angular_vel = 0.5
+            #    target_linear_vel = 0.5
+            #    status = status + 1
+            #    print(vels(target_linear_vel, target_angular_vel))
+            #if key == 't':
+            #    target_linear_vel = 1.5
+            #    status = status + 1
+            #elif key == 'x':
+            #    target_linear_vel = checkLinearLimitVelocity(target_linear_vel - LIN_VEL_STEP_SIZE)
+            #    status = status + 1
+            #    print(vels(target_linear_vel, target_angular_vel))
+            #elif key == 'a':
+            #    target_angular_vel = checkAngularLimitVelocity(target_angular_vel + ANG_VEL_STEP_SIZE)
+            #    status = status + 1
+            #    print(vels(target_linear_vel, target_angular_vel))
+            #elif key == 'd':
+            #    target_angular_vel = checkAngularLimitVelocity(target_angular_vel - ANG_VEL_STEP_SIZE)
+            #    status = status + 1
+            #    print(vels(target_linear_vel, target_angular_vel))
+            #elif key == ' ' or key == 's' or key == None:
+            #    target_linear_vel = 0.0
+            #    control_linear_vel = 0.0
+            #    target_angular_vel = 0.0
+            #    control_angular_vel = 0.0
+            #    print(vels(target_linear_vel, target_angular_vel))
+            #elif key == 'm':   #para a velocidade angular mas continuar a linear
+            #    target_angular_vel = 0.0
+            #    print(vels(target_linear_vel, target_angular_vel))
 
-            control_angular_vel = makeSimpleProfile(control_angular_vel, target_angular_vel, (ANG_VEL_STEP_SIZE/2.0))
-            twist.angular.x = 0.0
-            twist.angular.y = 0.0
-            twist.angular.z = control_angular_vel
+            #else:
+            #    target_linear_vel = 0.0
+            #    control_linear_vel = 0.0
+            #    target_angular_vel = 0.0
+            #    control_angular_vel = 0.0
+                #if (key == '\x03'):
+                #break
 
-            pub.publish(twist)
 
-    except:
+
+    except ValueError:
         print(e)
 
     finally:
