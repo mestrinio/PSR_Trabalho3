@@ -280,6 +280,8 @@ rosrun robutler_bringup_tp3 color_detection.py
 ***
 Have you ever wanted to see how your roomba would act if you left it charging for a whole month? Well, THOR will allow you to satisfy this desire, while also providing a first view! By selecting the mission "F1 Mode?", THOR will start racing around the room as if it's life depended on it!
 
+Not a fan of high speed races where you narrowly avoid all obstacles? Well then, why not...going against them, then? If you select the mission "Touch object", THOR will touch a green ball, trying compensate for the user's lack of touching grass.
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
