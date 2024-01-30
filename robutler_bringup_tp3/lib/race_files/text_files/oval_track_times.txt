@@ -7,3 +7,6 @@
 177.64 seconds
 113.15 seconds
 64.13 seconds
+64.64 seconds
+65.62 seconds
+64.61 seconds

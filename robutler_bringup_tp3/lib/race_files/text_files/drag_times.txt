@@ -10,3 +10,8 @@
 94.79 seconds
 26.75 seconds
 15.06 seconds
+15.11 seconds
+14.60 seconds
+14.72 seconds
+14.51 seconds
+15.23 seconds

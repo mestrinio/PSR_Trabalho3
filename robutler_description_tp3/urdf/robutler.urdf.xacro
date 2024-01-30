@@ -215,7 +215,7 @@
   <link name="camera_rgb_optical_frame"/>
 <!-- Minhas alterações a partir daqui -->
 
-                                            <!-- Ver se esta antena pode ser rotativa pra camara -->
+
   <link name="antena">
     <visual>
       <geometry>

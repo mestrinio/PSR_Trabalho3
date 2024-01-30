@@ -20,7 +20,7 @@ from visualization_msgs.msg import Marker
 from sounds import play
 from tts import text_to_speech,txt_speech
 import time
-from ultralytics import YOLO
+#from ultralytics import YOLO
 
 
 
@@ -236,6 +236,50 @@ def create_masks(image):
     
     return masks
 
+def create_masks2(image):
+        
+    #DIFFERENT COLORS - NECESSITA ALTERAÇOES EM TDOAS MENOS PURPLE E BLUE
+    #Purple
+    lower_purple = np.array([120, 50, 50])
+    upper_purple = np.array([150, 255, 255])
+
+    #Blue
+    lower_blue = np.array([78,158,124])  # Acertos na deteção do blue das bolas 
+    upper_blue = np.array([138,255,255])
+
+    #Light blue
+    lower_lblue = np.array([100, 100, 100])
+    upper_lblue = np.array([130, 255, 255])
+
+    # Orange
+    lower_orange = np.array([5, 100, 100])
+    upper_orange = np.array([20, 255, 255])
+
+    #Green
+    lower_green = np.array([40, 40, 40]) 
+    upper_green = np.array([80, 255, 255]) 
+
+
+    # Yellow
+    lower_yellow = np.array([25, 100, 100])
+    upper_yellow = np.array([40, 255, 255])
+    
+    #Red
+    lower_red = np.array([0, 100, 100])  
+    upper_red = np.array([5, 255, 255]) 
+
+    # Threshold the image to get only the desired color
+    masks = {
+        "purple" : cv2.inRange(image, lower_purple, upper_purple),
+        "blue" : cv2.inRange(image, lower_blue, upper_blue),
+        "l_blue" : cv2.inRange(image, lower_lblue, upper_lblue),
+        "orange": cv2.inRange(image, lower_orange, upper_orange),
+        "green" : cv2.inRange(image, lower_green, upper_green),
+        "yellow" : cv2.inRange(image, lower_yellow, upper_yellow),
+        "red" : cv2.inRange(image, lower_red, upper_red), 
+    }
+    
+    return masks
 
 class CameraListener:
     def __init__(self,location):
@@ -393,6 +437,30 @@ class CameraListener6:
             except Exception as e:
                 rospy.logerr("Error processing image: {}".format(e))
 
+class CameraListener7:
+    def __init__(self,location):
+        self.location=location
+        self.bridge = CvBridge()
+        self.image_sub = rospy.Subscriber("/camera/rgb/image_raw", Image, self.image_callback)
+        self.image_saved = False
+
+    def image_callback(self, data):
+        if hasattr(self, 'image_saved') and not self.image_saved:
+            try:
+                cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+                package_name = "robutler_bringup_tp3"
+                rospack = RosPack()
+                package_path = rospack.get_path(package_name)
+                directory_path = os.path.join(package_path, "lib/coke_can")                                          
+                file_name = "coke_can.png"
+                os.chdir(directory_path)
+                cv2.imwrite(file_name, cv_image)
+                play('foto')
+                rospy.loginfo("Image saved successfully as: " + file_name + ".")
+                self.image_saved = True
+            except Exception as e:
+                rospy.logerr("Error processing image: {}".format(e))
+
 
 
 def takeAPicture(feedback, x, y, z, R, P, Y, location, goal_publisher, camera_listener):
@@ -451,7 +519,7 @@ def moveTo(feedback, x, y, z, R, P, Y, location, goal_publisher):
     ps.pose = p
     ps.header = Header(frame_id='map', stamp=rospy.Time.now())
 
-    print('Sending Goal move to ' + location)
+    #print('Sending Goal move to ' + location)
     goal_publisher.publish(ps)
 
     # TODO know when move is finished
@@ -601,7 +669,7 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
 
 
 #Search for person Yolo only
-def searchForPerson(feedback,goal_publisher, camera_listener):
+'''def searchForPerson(feedback,goal_publisher, camera_listener):
     #MoveTo start
     location="kitchen"
     print('First, moving to ' + location)
@@ -809,9 +877,9 @@ def searchForPerson(feedback,goal_publisher, camera_listener):
     updateMissionDescription(complete_message,mission_location=location)
     # Perform any additional processing or mission planning logic
     print("Mission planning logic after taking a picture.")
-    return
+    return'''
 
-def searchForLaptop(feedback,goal_publisher, camera_listener):
+'''def searchForLaptop(feedback,goal_publisher, camera_listener):
     #MoveTo start
     location="bedroom"
     print('First, moving to ' + location)
@@ -880,7 +948,7 @@ def searchForLaptop(feedback,goal_publisher, camera_listener):
         updateMissionDescription(nolaptop_message,mission_location=location)
     rospy.sleep(4)
     complete_message = "I have completed one more mission, what's next my Master?"
-    updateMissionDescription(complete_message,mission_location=location)
+    updateMissionDescription(complete_message,mission_location=location)'''
 
 def searchForCoke(feedback, x, y, z, R, P, Y,location,goal_publisher,camera_listener):
     #MoveTo start
@@ -908,9 +976,6 @@ def searchForCoke(feedback, x, y, z, R, P, Y,location,goal_publisher,camera_list
         return
 
     print('move base completed goal with result ' + str(result_msg))
-        
-    complete_message = "Acabei o deslocamento"
-    updateMissionDescription(complete_message, mission_location=location)
     
     ##### Tirar a foto
     # Initialize CameraListener within the takeAPicture function
@@ -923,7 +988,7 @@ def searchForCoke(feedback, x, y, z, R, P, Y,location,goal_publisher,camera_list
     # Wait for some time to ensure that the CameraListener has captured the image
     rospy.sleep(3)
 
-    cv_image= cv2.imread("../lib/coke_can/coke_can.png")
+    cv_image= cv2.imread("/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/lib/coke_can/coke_can.png")
     rospy.sleep(3)
 
 
@@ -1007,8 +1072,8 @@ def isTableClean(feedback,goal_publisher, camera_listener):
     # Perform any additional processing or mission planning logic
     print("Mission planning logic after taking a picture.")
     #Images comparison
-    A = cv2.imread("../lib/table_photos/Table_photo_1.png")
-    B = cv2.imread("../lib/table_photos/Table_photo_2.png")
+    A = cv2.imread("/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/lib/table_photos/Table_photo_1.png")
+    B = cv2.imread("/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/lib/table_photos/Table_photo_2.png")
 
     # Define ROI (adjust coordinates based on your specific scenario)
     roi_start = (200, 200)
@@ -1184,7 +1249,7 @@ def storytelling(feedback,goal_publisher):
 
 
 
-    fourth_message = "And this is THOR, also know as Trully Hardworking Outstanding Robot,\ntheir magnificent creation..."
+    fourth_message = "And this is THOR, also known as Trully Hardworking Outstanding Robot,\ntheir magnificent creation..."
     updateMissionDescription(fourth_message, mission_location=location)
     
     rospy.sleep(10)
@@ -1199,163 +1264,162 @@ def storytelling(feedback,goal_publisher):
 def touchObject(feedback, x, y, z, R, P, Y,location,goal_publisher,camera_listener):
     #MoveTo start
     print('First, moving to ' + location)
-    updateMissionDescription("Moving to the {} to check if the laptop is there".format(location), mission_location=location)
-    # p = Pose()
-    # p.position = Point(x=x, y=y, z=z)
-    # q = quaternion_from_euler(R, P, Y)  # From euler angles (rpy) to quaternion
-    # p.orientation = Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
+    desired_duration = 1 
 
-    # ps = PoseStamped()
-    # ps.pose = p
-    # ps.header = Header(frame_id='map', stamp=rospy.Time.now())
+    while not rospy.is_shutdown():  # Continue until ROS is shut dow
+        ##### Taking the picture
+        # Initialize CameraListener within the takeAPicture function
+        camera_listener_instance = camera_listener(location)
 
-    # print('Sending Goal move to ' + location)
-    # goal_publisher.publish(ps)
-
-    # # TODO know when move is finished
-    # try:
-    #     result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
-    # except:
-    #     print('Timeout waiting for moveto')
-    #     # TODO
-    #     return
-
-    # print('move base completed goal with result ' + str(result_msg))
+        updateMissionDescription("Scanning ...", mission_location=location)
         
-    # complete_message = "acabei o deslocamneto"
-    # updateMissionDescription(complete_message, mission_location=location)
-    
-    ##### Tirar a foto
-    # Initialize CameraListener within the takeAPicture function
-    camera_listener_instance = camera_listener(location)
+        #Deteção de Cor na foto
 
-    updateMissionDescription("Looking for a can of coke in {}".format(location), mission_location=location)
-    
-    #Deteção de Cor na foto
+        # Wait for some time to ensure that the CameraListener has captured the image
+        rospy.sleep(1)
 
-    # Wait for some time to ensure that the CameraListener has captured the image
-    rospy.sleep(4)
-
-    cv_image= cv2.imread("../lib/coke_can/coke_can.png")
-    rospy.sleep(4)
+        cv_image= cv2.imread("/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/lib/coke_can/coke_can.png")
+        rospy.sleep(1)
 
 
-    # Convert BGR to HSV
-    hsv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
+        # Convert BGR to HSV
+        hsv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
+        #Mask Creation
+        masks = create_masks2(hsv_image)
 
-    masks = create_masks(hsv_image)
+        # Use only the red mask in the image_callback function
+        green_mask = masks["green"] ################### TENHO DE FAZER OUTRO CAMERA LISTENER
 
-    # Use only the red mask in the image_callback function
-    purple_mask = masks["purple"] ################### TENHO DE FAZER OUTRO CAMERA LISTENER
+        # Find contours for red objects
+        green_contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        object_contours = 0
 
-    # Find contours for red objects
-    red_contours, _ = cv2.findContours(purple_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    object_contours = 0
+        # Calculate the width of each section
+        image_width = cv_image.shape[1]
+        section_width = image_width // 3
 
-    # Calculate the width of each section
-    image_width = cv_image.shape[1]
-    section_width = image_width // 3
+        # Draw vertical lines to divide the image into three equal sections
+        cv2.line(cv_image, (section_width, 0), (section_width, cv_image.shape[0]), (255, 0, 0), 2)
+        cv2.line(cv_image, (2 * section_width, 0), (2 * section_width, cv_image.shape[0]), (255, 0, 0), 2)
 
-    # Draw vertical lines to divide the image into three equal sections
-    cv2.line(cv_image, (section_width, 0), (section_width, cv_image.shape[0]), (255, 0, 0), 2)
-    cv2.line(cv_image, (2 * section_width, 0), (2 * section_width, cv_image.shape[0]), (255, 0, 0), 2)
+        # Define the regions based on the section widths
+        left_region = (0, section_width)
+        center_region = (section_width, 2 * section_width)
+        right_region = (2 * section_width, image_width)
 
-    # Define the regions based on the section widths
-    left_region = (0, section_width)
-    center_region = (section_width, 2 * section_width)
-    right_region = (2 * section_width, image_width)
+        # Lists to store contours in each region
+        left_contours = []
+        center_contours = []
+        right_contours = []
 
-    # Lists to store contours in each region
-    left_contours = []
-    center_contours = []
-    right_contours = []
-
-    # Thresholds to determine the desired robot behavior
-    center_threshold = 50  # adjust based on your requirements
-    turn_threshold = 150  # adjust based on your requirements
-
-
-    for contour in red_contours:
-        area = cv2.contourArea(contour)
-        if area > 100:
-            x, _, w, _ = cv2.boundingRect(contour)
-            center_x = x + w // 2  # x-coordinate of the center of the contour
-
-            if left_region[0] <= center_x < left_region[1]:
-                left_contours.append(contour)
-            elif center_region[0] <= center_x < center_region[1]:
-                center_contours.append(contour)
-            elif right_region[0] <= center_x < right_region[1]:
-                right_contours.append(contour)
-
-    # Draw rectangles around contours in each region
-    for contour in left_contours:
-        x, y, w, h = cv2.boundingRect(contour)
-        cv2.rectangle(cv_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
-    for contour in center_contours:
-        x, y, w, h = cv2.boundingRect(contour)
-        cv2.rectangle(cv_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
-
-    for contour in right_contours:
-        x, y, w, h = cv2.boundingRect(contour)
-        cv2.rectangle(cv_image, (x, y), (x + w, y + h), (255, 0, 0), 2)
+        # Thresholds to determine the desired robot behavior
+        center_threshold = 50  # adjust based on your requirements
+        turn_threshold = 150  # adjust based on your requirements
 
 
-    # Calculate the average x-coordinate of contours in each region
-    left_avg_x = np.mean([cv2.boundingRect(contour)[0] for contour in left_contours]) if left_contours else np.nan
-    center_avg_x = np.mean([cv2.boundingRect(contour)[0] for contour in center_contours]) if center_contours else np.nan
-    right_avg_x = np.mean([cv2.boundingRect(contour)[0] for contour in right_contours]) if right_contours else np.nan
-    #sao listas
-    print("Left Region - Average X:", left_avg_x)
-    print("Center Region - Average X:", center_avg_x)
-    print("Right Region - Average X:", right_avg_x)
+        for contour in green_contours:
+            area = cv2.contourArea(contour)
+            if area > 100:
+                x, _, w, _ = cv2.boundingRect(contour)
+                center_x = x + w // 2  # x-coordinate of the center of the contour
 
-    print("Left Region - Contour Count:", len(left_contours))
-    print("Center Region - Contour Count:", len(center_contours))
-    print("Right Region - Contour Count:", len(right_contours))
+                if left_region[0] <= center_x < left_region[1]:
+                    left_contours.append(contour)
+                elif center_region[0] <= center_x < center_region[1]:
+                    center_contours.append(contour)
+                elif right_region[0] <= center_x < right_region[1]:
+                    right_contours.append(contour)
+
+        # Draw rectangles around contours in each region
+        for contour in left_contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            cv2.rectangle(cv_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+        for contour in center_contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            cv2.rectangle(cv_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
+
+        for contour in right_contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            cv2.rectangle(cv_image, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+
+        # Calculate the average x-coordinate of contours in each region
+        left_avg_x = np.mean([cv2.boundingRect(contour)[0] for contour in left_contours]) if left_contours else np.nan
+        center_avg_x = np.mean([cv2.boundingRect(contour)[0] for contour in center_contours]) if center_contours else np.nan
+        right_avg_x = np.mean([cv2.boundingRect(contour)[0] for contour in right_contours]) if right_contours else np.nan
+        #sao listas
+        print("Left Region - Average X:", left_avg_x)
+        print("Center Region - Average X:", center_avg_x)
+        print("Right Region - Average X:", right_avg_x)
+
+        print("Left Region - Contour Count:", len(left_contours))
+        print("Center Region - Contour Count:", len(center_contours))
+        print("Right Region - Contour Count:", len(right_contours))
 
 
 
-    #Movment publisher working
-    cmd_vel_publisher = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
-    # Create a Twist message to control robot velocity
-    cmd_vel_msg = Twist()
-    print("GOT HERE")
+        #Movment publisher working
+        cmd_vel_publisher = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+        # Create a Twist message to control robot velocity
+        cmd_vel_msg = Twist()
+        print("GOT HERE")
 
-    desired_duration = 0.5
-    now = rospy.Time.now()
-    rate = rospy.Rate(5)
-    # Based on the average x-coordinates, adjust robot movement commands
-    if len(center_contours) > 0:
-        # Move forward
-        print("Moving forward")
-        cmd_vel_msg.linear.x =   0.2
-        cmd_vel_msg.linear.y =   0.0
-        cmd_vel_msg.angular.z = 0.0  # Adjust speed as needed
-        #Talvez se parar =chegou
-    elif len(left_contours) > 0:
-        # Turn left
-        print("Turning left")
-        cmd_vel_msg.linear.x =   0.0
-        cmd_vel_msg.linear.y =   0.0
-        cmd_vel_msg.angular.z = -1.0  # Adjust speed as needed
-    elif len(right_contours) > 0:
-        # Turn right
-        print("Turning right")
-        cmd_vel_msg.linear.x =   0.0
-        cmd_vel_msg.linear.y =   0.0
-        cmd_vel_msg.angular.z = 1.0  # Adjust speed as needed
-    else:
-        print("None of the above worked")
-    # Assuming you have a publisher for the /cmd_vel topic
- 
-    # Publish the Twist message to control robot movement
-    cmd_vel_publisher.publish(cmd_vel_msg)
-    
-    while rospy.Time.now() < now + rospy.Duration.from_sec(desired_duration):
+
+        now = rospy.Time.now()
+        rate = rospy.Rate(5)
+        # Based on the average x-coordinates, adjust robot movement commands
+        if len(center_contours) > 0:
+            # Move forward
+            print("Moving forward")
+            cmd_vel_msg.linear.x =   0.3
+            cmd_vel_msg.linear.y =   0.0
+            cmd_vel_msg.angular.z = 0.0  # Adjust speed as needed
+            #Talvez se parar =chegou
+        elif len(left_contours) > 0:
+            # Turn left
+            print("Turning left")
+            cmd_vel_msg.linear.x =   0.0
+            cmd_vel_msg.linear.y =   0.0
+            cmd_vel_msg.angular.z = 0.5  # Adjust speed as needed
+        elif len(right_contours) > 0:
+            # Turn right
+            print("Turning right")
+            cmd_vel_msg.linear.x =   0.0
+            cmd_vel_msg.linear.y =   0.0
+            cmd_vel_msg.angular.z = -0.5 # Adjust speed as needed
+        else:
+            print("Ball Touched!")
+                    # Stop the robot
+            cmd_vel_msg.linear.x = 0.0
+            cmd_vel_msg.linear.y = 0.0
+            cmd_vel_msg.angular.z = 0.0
+            updateMissionDescription("Touched the ball ...", mission_location=location)
+            play('thunder')
+            rospy.sleep(999)
+
+            
+        # Assuming you have a publisher for the /cmd_vel topic
+        
+        # Publish the Twist message to control robot movement
         cmd_vel_publisher.publish(cmd_vel_msg)
-        rate.sleep()
+        
+               
+        while rospy.Time.now() < now + rospy.Duration.from_sec(desired_duration):
+            cmd_vel_publisher.publish(cmd_vel_msg)
+            rate.sleep()
+        #rospy.sleep(desired_duration)
+        #rate.sleep()
+        print("Movement completed")
+
+        cmd_vel_msg.linear.x = 0.0
+        cmd_vel_msg.linear.y = 0.0
+        cmd_vel_msg.angular.z = 0.0
+        cmd_vel_publisher.publish(cmd_vel_msg)
+        rospy.sleep(1)
+
+        
+
 
     # Stop the robot by publishing a new Twist message with zero velocities
     cmd_vel_msg.linear.x = 0.0
@@ -1363,7 +1427,7 @@ def touchObject(feedback, x, y, z, R, P, Y,location,goal_publisher,camera_listen
     cmd_vel_msg.angular.z = 0.0
     cmd_vel_publisher.publish(cmd_vel_msg)
 
-    print("Movement completed")
+    # print("Movement completed")
     # cv_image = cv2.resize(cv_image, (960, 540))                
     # print("Linear Velocity:", cmd_vel_msg.linear.x)
     # print("Angular Velocity:", cmd_vel_msg.angular.z)
@@ -1457,7 +1521,7 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         updateMissionDescription("1.....", mission_location=location)
         rospy.sleep(1)
         
-        updateMissionDescription("Let's gooo", mission_location=location)
+        updateMissionDescription("Let's go!", mission_location=location)
         start_time = time.time()
     
         # Deslocation start
@@ -1633,10 +1697,10 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
                     print("No race times recorded yet.")
         except FileNotFoundError:
             print("I didnt find the corresponding file.")
-        rospy.sleep(5)   #Controlo de erros
+        rospy.sleep(2)   #Controlo de erros
 
         updateMissionDescription("When my masters aren't home, sometimes it gets a little bit boring\n So there is a game I like to play", mission_location=location)
-        rospy.sleep(6)
+        rospy.sleep(9)
 
         complete_message = "I like to do a little race and try to beat my previous High Score that is {}:{:02d}s. \n This is the track we're using :".format(int(h_minutes),int(h_seconds) % 100)
         updateMissionDescription(complete_message, mission_location=location)
@@ -1646,7 +1710,7 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         cv2.imshow("Race Track", track)
         cv2.waitKey(6000)
         cv2.destroyAllWindows()
-        rospy.sleep(6)
+        rospy.sleep(1)
         
         updateMissionDescription("Let's go then. I am speed!", mission_location=location)
         rospy.sleep(2)
@@ -1660,7 +1724,7 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         updateMissionDescription("1.....", mission_location=location)
         rospy.sleep(1)
         
-        updateMissionDescription("Let's gooo", mission_location=location)
+        updateMissionDescription("Let's go!", mission_location=location)
         start_time = time.time()
     
         # Deslocation start
@@ -1674,7 +1738,8 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         ps1.header = Header(frame_id='map', stamp=rospy.Time.now())  
 
         #print('First looking in : ' + location)
-        goal_publisher.publish(ps1)     
+        goal_publisher.publish(ps1) 
+        play('aceleracao')   
 
         # TODO know when move is finished
         try:
@@ -1688,10 +1753,7 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         checkpoint1 = checkpoint_time - start_time
         minutes1, seconds1 = divmod(checkpoint1,60)
         print(f"Reached the first checkpoint: {int(minutes1)} minutes {int(seconds1):.2f} seconds")
-        if checkpoint_time < 40:
-            updateMissionDescription("I love to drift in the turn !", mission_location=location)
-        else:
-            updateMissionDescription("That was a bad start..Let's see if I can make it up!", mission_location=location)
+        updateMissionDescription("I love to drift in the turn !", mission_location=location)
 
         rospy.sleep(1)
 
@@ -1707,11 +1769,13 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         ps3.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
 
         #print('\n3 looking in : ' + location)
-        goal_publisher.publish(ps3)     
+        goal_publisher.publish(ps3) 
+        play("drift_curto")    
 
         # TODO know when move is finished
         try:
             result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+            
         except:
             print('Timeout waiting for moveto')
             # TODO
@@ -1736,7 +1800,8 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         ps4.header = Header(frame_id='map', stamp=rospy.Time.now())  #Isto não é o path certo
 
         #print('\n4 looking in : ' + location)
-        goal_publisher.publish(ps4)     
+        goal_publisher.publish(ps4)  
+        play("drag_curto")   
 
         # TODO know when move is finished
         try:
@@ -1784,7 +1849,7 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         print(elapsed_time,"Contagem do tempo")
 
         print(f"Race completed: {int(minutes)} minutes {int(seconds):.2f} seconds")
-        complete_message = "LET'S GOOOO ! It only took {}:{:02d}s.  I love this track".format(int(minutes),int(seconds) % 100)
+        complete_message = "LET'S GO ! It only took {}:{:02d}s.  I love this track".format(int(minutes),int(seconds) % 100)
         updateMissionDescription(complete_message, mission_location=location)
         rospy.sleep(4)
         
@@ -1811,10 +1876,10 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
                     print("No race times recorded yet.")
         except FileNotFoundError:
             print("I didnt find the corresponding file.")
-        rospy.sleep(5)   #Controlo de erros
+        rospy.sleep(2)   #Controlo de erros
 
         updateMissionDescription("When my masters aren't home, sometimes it gets a little bit boring\n So there is a game I like to play", mission_location=location)
-        rospy.sleep(6)
+        rospy.sleep(9)
         complete_message = "I like to do a little race and try to beat my previous High Score that is {}:{:02d}s. \n This is the track we're using :".format(int(h_minutes),int(h_seconds) % 100)
         updateMissionDescription(complete_message, mission_location=location)
         rospy.sleep(6)
@@ -1823,9 +1888,9 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         cv2.imshow("Race Track", track)
         cv2.waitKey(6000)
         cv2.destroyAllWindows()
-        rospy.sleep(5)
+        rospy.sleep(1)
         
-        updateMissionDescription("In this track I can really put my speed to test. I am speed!", mission_location=location)
+        updateMissionDescription("In this track I can really put my speed to test... I am speed!", mission_location=location)
         rospy.sleep(5)
         
         updateMissionDescription("3.....", mission_location=location)
@@ -1837,9 +1902,9 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         updateMissionDescription("1.....", mission_location=location)
         rospy.sleep(1)
         
-        updateMissionDescription("Let's gooo", mission_location=location)
+        updateMissionDescription("Let's go!", mission_location=location)
         start_time = time.time()
-        
+   
         #Moviment Start
         
         p1 = Pose()
@@ -1853,7 +1918,8 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
 
         print('First looking in : ' + location)
         goal_publisher.publish(ps1)     
-
+        play('aceleracao')
+        play('drag_curto')
         # TODO know when move is finished
         try:
             result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
@@ -1874,7 +1940,7 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
         print(f"Race completed: {int(minutes)} minutes {int(seconds):.2f} seconds")
         complete_message = "That was wild, my time was {}:{:02d}s.  Love this fast race!".format(int(minutes),int(seconds) % 100)
         updateMissionDescription(complete_message, mission_location=location)
-        rospy.sleep(4)
+        rospy.sleep(6)
 
         if elapsed_time < high_score:
             updateMissionDescription("I can't believe it I just broke the record! Family power", mission_location=location)
@@ -1925,7 +1991,7 @@ def main():
                                                  R=0, P=0.003185, Y=-1.565866,
                                                  location='Living_Room',
                                                  goal_publisher=goal_publisher,                                                
-                                                 camera_listener=CameraListener5))
+                                                 camera_listener=CameraListener7))
 
     
     
@@ -2005,10 +2071,10 @@ def main():
     entry_bluecube = menu_handler.insert("Blue Cube",parent=h_third_entry)
     entry_redcube = menu_handler.insert("Red Cube",parent=h_third_entry)
     
-    entry = menu_handler.insert("Bedroom", parent=entry_laptop,
-                                 callback=partial(searchForLaptop,
-                                                  goal_publisher=goal_publisher,                                                
-                                                  camera_listener=CameraListener4))
+    # entry = menu_handler.insert("Bedroom", parent=entry_laptop,
+    #                              callback=partial(searchForLaptop,
+    #                                               goal_publisher=goal_publisher,                                                
+    #                                               camera_listener=CameraListener4))
     
     
     ############# COCA ###############

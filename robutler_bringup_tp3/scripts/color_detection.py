@@ -8,8 +8,6 @@ import numpy as np
 
 ####################################### This script is for individual use, not paired with mission_maneger ##########################################
 
-#Turn this into a mission that he starts going around the house and searching for objects
-#Ideia o robot dizer onde encontrou as esferas tipo nome da localização, mission where is ball, juntar com o update mission
 class ObjectDetectionNode:
     
     def __init__(self):
@@ -102,14 +100,9 @@ class ObjectDetectionNode:
         
         print(self.object_contours)
         # Display the result (you can remove this in the final version)
-        cv2.putText(cv_image, f'Objects in Frame: {self.object_contours}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0,0,0), 2)   
+        cv2.putText(cv_image, f'Objects in Frame: {self.object_contours}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.40, (0,0,0), 2)   
         cv2.imshow("Object Detection", cv_image)        
         cv2.waitKey(1)
-        
-        # try:
-        #     rospy.spin()
-        # except KeyboardInterrupt:
-        #     cv2.destroyAllWindows()
 
 
 def main():
