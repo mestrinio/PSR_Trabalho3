@@ -20,7 +20,7 @@ from visualization_msgs.msg import Marker
 from sounds import play
 from tts import text_to_speech,txt_speech
 import time
-#from ultralytics import YOLO
+from ultralytics import YOLO
 
 
 
@@ -669,7 +669,7 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
 
 
 #Search for person Yolo only
-'''def searchForPerson(feedback,goal_publisher, camera_listener):
+def searchForPerson(feedback,goal_publisher, camera_listener):
     #MoveTo start
     location="kitchen"
     print('First, moving to ' + location)
@@ -877,9 +877,9 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
     updateMissionDescription(complete_message,mission_location=location)
     # Perform any additional processing or mission planning logic
     print("Mission planning logic after taking a picture.")
-    return'''
+    return
 
-'''def searchForLaptop(feedback,goal_publisher, camera_listener):
+def searchForLaptop(feedback,goal_publisher, camera_listener):
     #MoveTo start
     location="bedroom"
     print('First, moving to ' + location)
@@ -948,7 +948,7 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
         updateMissionDescription(nolaptop_message,mission_location=location)
     rospy.sleep(4)
     complete_message = "I have completed one more mission, what's next my Master?"
-    updateMissionDescription(complete_message,mission_location=location)'''
+    updateMissionDescription(complete_message,mission_location=location)
 
 def searchForCoke(feedback, x, y, z, R, P, Y,location,goal_publisher,camera_listener):
     #MoveTo start
@@ -1978,7 +1978,10 @@ def main():
     h_second_entry = menu_handler.insert("Take a Picture")
     h_third_entry = menu_handler.insert("Search for object in division")
    
-    #h_fourth_entry = menu_handler.insert("Is Someone Home?")
+    h_fourth_entry = menu_handler.insert("Is Someone Home?", 
+                                                callback=partial(searchForPerson,                                                
+                                                goal_publisher=goal_publisher,
+                                                camera_listener=CameraListener2))
     h_fifth_entry = menu_handler.insert("Is table clean?",
                                 callback=partial(isTableClean,
                                                  goal_publisher=goal_publisher,
@@ -2074,10 +2077,10 @@ def main():
     entry_bluecube = menu_handler.insert("Blue Cube",parent=h_third_entry)
     entry_redcube = menu_handler.insert("Red Cube",parent=h_third_entry)
     
-    # entry = menu_handler.insert("Bedroom", parent=entry_laptop,
-    #                              callback=partial(searchForLaptop,
-    #                                               goal_publisher=goal_publisher,                                                
-    #                                               camera_listener=CameraListener4))
+    entry = menu_handler.insert("Bedroom", parent=entry_laptop,
+                                 callback=partial(searchForLaptop,
+                                                  goal_publisher=goal_publisher,                                                
+                                                  camera_listener=CameraListener4))
     
     
     ############# COCA ###############
@@ -2230,10 +2233,10 @@ def main():
     ############################### Is someone home missions #######################
 
 
-    # entry = menu_handler.insert("Is someone home?", parent=h_fourth_entry,
-    #                             callback=partial(searchForPerson,
-    #                                              goal_publisher=goal_publisher,
-    #                                              camera_listener=CameraListener2))
+    entry = menu_handler.insert("Is someone home?", parent=h_fourth_entry,
+                                callback=partial(searchForPerson,
+                                                 goal_publisher=goal_publisher,
+                                                 camera_listener=CameraListener2))
     
         
     ############################### RACING #######################
