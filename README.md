@@ -200,7 +200,7 @@ Other navigations:
 - Using RViz select option to move to 2d point.
 - Right press the balloon over THOR (as seen in the picture bellow) to open missions menu, and select option to move to desired room.
 
-  <a href="https://github.com/mestrinio/PSR_Trabalho3/graphs/">
+  <a>
   <div align="center">
     <img src="images/MissionMenu.png" alt="MissionMenu" width="550" height="350">
   </a>
@@ -257,7 +257,24 @@ By analising the images captured by it's cameras, THOR is able to detect a pleth
 
 THOR's detection module is also equiped to handle more advanced missions, such as checking if the table is clean, which will check if there are any objects on the table, or if someone is home, which will take him around the house searching for a Human being.
 
+Alternatively, if you want to test your colorblindness, THOR will help you with that! The following code will allow you to drive around the house, seeing the house through his lenses as he points out where certain colors are present in the picture at any time! 
+
+
+
+
+```
+rosrun robutler_bringup_tp3 color_detection.py
+```
+
+   <a>
+   <div align="center">
+    <img src="images/colordetect.png" alt="Color Detection" height="250">
+   </a>
+
+
 <br>
+
+<div align="left">
 
 ### Specific Missions
 ***
