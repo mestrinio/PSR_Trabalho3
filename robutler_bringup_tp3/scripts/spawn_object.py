@@ -126,6 +126,10 @@ def main():
     f = open(package_path + 'can_coke/model.sdf', 'r')
     objects['coke'] = {'name': 'can_coke', 'sdf': f.read()}
 
+    #add can_coke
+    f = open(package_path + 'cube/model.sdf', 'r')
+    objects['cube'] = {'name': 'cube', 'sdf': f.read()}
+
 
     # Check if given object and location are valid
 

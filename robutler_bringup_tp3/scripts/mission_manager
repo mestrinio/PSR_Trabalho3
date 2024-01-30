@@ -487,13 +487,13 @@ def takeAPicture(feedback, x, y, z, R, P, Y, location, goal_publisher, camera_li
         return
 
     #UpdateMissionDescription("Mission complete!! Uff")
-    print('move base completed goal with result ' + str(result_msg))
+    #print('Deslocation complete ' + str(result_msg))
 
     
     # Initialize CameraListener within the takeAPicture function
     camera_listener_instance = camera_listener(location)
 
-    complete_message = "Mission complete! Picture taken sucessfully!"
+    complete_message = "Mission complete! Picture taken successfully!"
     updateMissionDescription(complete_message, mission_location=location)
     # Wait for some time to ensure that the CameraListener has captured the image
     rospy.sleep(5)
@@ -603,7 +603,7 @@ def searchForObject(feedback, x, y, z, R, P, Y, location, ball, color, goal_publ
     # Wait for some time to ensure that the CameraListener has captured the image
     rospy.sleep(3)
 
-    cv_image= cv2.imread("../lib/object_detec/object_detec.png")
+    cv_image= cv2.imread("/home/luis/catkin_ws/src/PSR_Trabalho3/robutler_bringup_tp3/lib/object_detec/object_detec.png")
     rospy.sleep(3)
 
     cv_image = cv_image[:7 * cv_image.shape[0] // 12, :]
@@ -1121,8 +1121,8 @@ def storytelling(feedback,goal_publisher):
     print('First, moving to ' + location)
     updateMissionDescription("Oh, you're bored and want me to tell you a story? \nAlright, let me just get ready", mission_location=location)
     p1 = Pose()
-    p1.position = Point(x=3.103959, y=-4.699401, z=-0.001006)
-    q1 = quaternion_from_euler(0, 0.003170, -1.649576)  # From euler angles (rpy) to quaternion
+    p1.position = Point(x=3.107634, y=-3.581894, z=-0.001006)
+    q1 = quaternion_from_euler(0, 0.003189, -1.522400)  # From euler angles (rpy) to quaternion
     p1.orientation = Quaternion(x=q1[0], y=q1[1], z=q1[2], w=q1[3])
 
     #1 localização
@@ -1157,8 +1157,8 @@ def storytelling(feedback,goal_publisher):
     updateMissionDescription("vroom", mission_location=location)
     
     p2 = Pose()
-    p2.position = Point(x=2.577433, y=-4.699189, z=-0.001006)
-    q2 = quaternion_from_euler(0 , 0.003195, -1.776621)  # From euler angles (rpy) to quaternion
+    p2.position = Point(x=3.107634, y=-3.581894, z=-0.001006)
+    q2 = quaternion_from_euler(0 , 0.003190, -1.865115)  # From euler angles (rpy) to quaternion
     p2.orientation = Quaternion(x=q2[0], y=q2[1], z=q2[2], w=q2[3])
 
     ps2 = PoseStamped()
@@ -1191,8 +1191,8 @@ def storytelling(feedback,goal_publisher):
     print('Now moving to : ' + location)
     updateMissionDescription("SKRRRR", mission_location=location)
     p3 = Pose()
-    p3.position = Point(x=3.466525, y=-4.656501, z=-0.001006)
-    q3 = quaternion_from_euler(0 , 0.003169, -1.364564)  # From euler angles (rpy) to quaternion
+    p3.position = Point(x=3.107634, y=-3.581894, z=-0.001006)
+    q3 = quaternion_from_euler(0 , 0.003182,-1.180979)  # From euler angles (rpy) to quaternion
     p3.orientation = Quaternion(x=q3[0], y=q3[1], z=q3[2], w=q3[3])
 
     ps3 = PoseStamped()
@@ -1983,7 +1983,10 @@ def main():
                                 callback=partial(isTableClean,
                                                  goal_publisher=goal_publisher,
                                                  camera_listener=CameraListener3))
-    h_sixth_entry = menu_handler.insert("Tell me a story")
+    h_sixth_entry = menu_handler.insert("Tell me a story",
+                                                callback=partial(storytelling,
+                                                goal_publisher=goal_publisher)) 
+
     h_seventh_entry = menu_handler.insert("F1 Mode?")
     h_eight_entry = menu_handler.insert("Touch Object",
                                 callback=partial(touchObject,
@@ -2233,12 +2236,8 @@ def main():
     #                                              camera_listener=CameraListener2))
     
         
-    ############################### STORY TELLING #######################
+    ############################### RACING #######################
 
-
-    entry = menu_handler.insert("Tell a story", parent=h_sixth_entry,
-                                callback=partial(storytelling,
-                                                  goal_publisher=goal_publisher))
     
     entry = menu_handler.insert("8 Track", parent=h_seventh_entry,
                                 callback=partial(racingMode,
