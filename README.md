@@ -70,7 +70,7 @@
       <ul>
         <li><a href="#Object-Spawn">Object Spawn</a></li>
         <li><a href="#Detection">Detection</a></li>
-        <li><a href="#Specific-Missions">Specific Missions</a></li>
+        <li><a href="#Specific-Missions/Features">Specific Missions/Features</a></li>
       </ul>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
@@ -86,7 +86,15 @@
 <img  src="images/THOR.png" alt="THOR" height="400">
 </div>
 <br>
-This assignment was developed for Robotic Systems Programming. It uses a simulated environment to program a simulated robot, model TurtleBot3. The bot is meant to be accomplish a certain number of missions, including detection of objects or people, using image similarity or database comparison (with YOLOv8), and other navigation and localization missions. The model has been modified to have similarities with the "Thor" god character. The program uses ROS and its programmed with Python language and OpenCV library.
+This assignment was developed for Robotic Systems Programming. It uses a simulated environment to program a simulated robot, model TurtleBot3. The bot is meant to be accomplish a certain number of missions, including detection of objects or people, using image similarity or database comparison (with YOLOv8), and other navigation and localization missions. The model has been modified to have similarities with the "Thor" god character. The program uses ROS and its programmed with Python language and OpenCV library. You can see some videos of THOR in the link bellow.
+
+  <p align="center">
+    This repository was created for evaluation @ Robotic Systems Programming "PSR 23-24 Trabalho prático 3".
+    <br />
+    <!-- <a href="https://github.com/mestrinio/PSR_Trabalho3"><strong>Explore the Wiki »</strong></a> -->
+    <br >
+    <a href="https://www.youtube.com/playlist?list=PLHzdd_b8JsMrPpPd9xdDzZp10-okaVuq8"> <u>Thor missions </u> </a>
+  </p>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -276,11 +284,13 @@ rosrun robutler_bringup_tp3 color_detection.py
 
 <div align="left">
 
-### Specific Missions
+### Specific Misions/Features
 ***
 Have you ever wanted to see how your roomba would act if you left it charging for a whole month? Well, THOR will allow you to satisfy this desire, while also providing a first view! By selecting the mission "F1 Mode?", THOR will start racing around the room as if it's life depended on it!
 
 Not a fan of high speed races where you narrowly avoid all obstacles? Well then, why not...going against them, then? If you select the mission "Touch object", THOR will touch a green ball, trying compensate for the user's lack of touching grass.
+
+Are you alone? THOR will speak to you!! Everytime you select a mission or that it's state changes, he will keep you informed. If you're really bored, he will even tell you a story! Just ask him to in by using the mission menu.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
