@@ -253,6 +253,7 @@
   </gazebo>
 
 
+
   <gazebo reference="toptop_camera_rgb_frame">
     <sensor type="camera" name="Pi Camera">
       <always_on>true</always_on>
@@ -285,6 +286,7 @@
       </plugin>
     </sensor>
   </gazebo>
+
 
 
 

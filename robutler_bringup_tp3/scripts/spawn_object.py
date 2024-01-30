@@ -18,11 +18,13 @@ def main():
     # -------------------------------
     parser = argparse.ArgumentParser(description='Script to compute perfect numbers.')
     parser.add_argument('-l', '--location', type=str, help='', required=False,
+
                         default='on_bed')
     parser.add_argument('-o', '--object', type=str, help='', required=False,
                         default='person_standing')
 
  ################################### FAZER MODO RANDOM POSITION ######################
+
     args = vars(parser.parse_args())  # creates a dictionary
     print(args)
 
@@ -52,6 +54,7 @@ def main():
     q = quaternion_from_euler(0, 0, 0)  # From euler angles (rpy) to quaternion
     p.orientation = Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
     poses['on_kitchen'] = {'pose': p}
+
 
     # on living room
     p = Pose()
@@ -88,11 +91,11 @@ def main():
     q = quaternion_from_euler(0, 0, 1.562233)  # From euler angles (rpy) to quaternion
     p.orientation = Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
     poses['on_bedroom_table'] = {'pose': p}
-    
 
 
     ###################### Define objects ########################
     objects = {}
+
 
     # add object sphere_v (Violet Sphere)
     f = open(package_path + 'sphere_v/model.sdf', 'r')
@@ -117,6 +120,7 @@ def main():
     # add object person_standing
     f = open(package_path + 'person_standing/model.sdf', 'r')
     objects['person_standing'] = {'name': 'person_standing', 'sdf': f.read()}
+
 
     #add laptop
     f = open(package_path + 'labtop_mac_1/model.sdf', 'r')
@@ -156,6 +160,7 @@ def main():
 
     print('Spawning an object ...')
     uuid_str = str(uuid.uuid4())
+
     object_name = args['object']
     pose_name = args['location']
 

@@ -6,7 +6,9 @@ Panels:
       Expanded:
         - /LaserScan1
         - /Global_Plan_Path1
+
         - /TOPTOP1
+
       Splitter Ratio: 0.5043478012084961
     Tree Height: 719
   - Class: rviz/Selection
@@ -103,12 +105,14 @@ Visualization Manager:
           Value: true
         top_camera_rgb_optical_frame:
           Value: true
+
         toptop_camera_link:
           Value: true
         toptop_camera_rgb_frame:
           Value: true
         toptop_camera_rgb_optical_frame:
           Value: true
+
         wheel_left_link:
           Value: true
         wheel_right_link:
@@ -117,7 +121,9 @@ Visualization Manager:
       Marker Scale: 0.30000001192092896
       Name: TF
       Show Arrows: true
+
       Show Axes: false
+
       Show Names: false
       Tree:
         map:
@@ -130,10 +136,12 @@ Visualization Manager:
                       top_camera_rgb_frame:
                         top_camera_rgb_optical_frame:
                           {}
+
                     toptop_camera_link:
                       toptop_camera_rgb_frame:
                         toptop_camera_rgb_optical_frame:
                           {}
+
                 base_scan:
                   {}
                 camera_link:
@@ -226,6 +234,7 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+
         toptop_camera_link:
           Alpha: 1
           Show Axes: false
@@ -239,6 +248,7 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+
         wheel_left_link:
           Alpha: 1
           Show Axes: false
@@ -409,6 +419,7 @@ Visualization Manager:
       Topic: /move_base/DWAPlannerROS/global_plan
       Unreliable: false
       Value: true
+
     - Class: rviz/Image
       Enabled: false
       Image Topic: /camera/rgb/toptop_image_raw
@@ -421,6 +432,7 @@ Visualization Manager:
       Transport Hint: raw
       Unreliable: false
       Value: false
+
   Enabled: true
   Global Options:
     Background Color: 255; 255; 255
@@ -457,9 +469,11 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
+
         X: -1.620177984237671
         Y: 1.853159785270691
         Z: 3.1802444458007812
+
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
@@ -475,13 +489,17 @@ Window Geometry:
   Height: 1016
   Hide Left Dock: false
   Hide Right Dock: false
+
   QMainWindow State: 000000ff00000000fd00000004000000000000015b0000035afc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d0000035a000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c0000026100000001000001950000035afc0200000005fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb000000120054006f0070005f0049006d006100670065010000003d000001b00000001600fffffffc000001f3000001a40000001600fffffffa000000000100000002fb00000012005200470042002d0049006d0061006700650100000000ffffffff0000008000fffffffb0000000a00560069006500770073000000040a0000010f0000010000fffffffb0000000c0054004f00500054004f005000000002ca000000cd0000001600fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007380000003efc0100000002fb0000000800540069006d0065010000000000000738000003bc00fffffffb0000000800540069006d006501000000000000045000000000000000000000043c0000035a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+
   RGB-Image:
     collapsed: false
   Selection:
     collapsed: false
+
   TOPTOP:
     collapsed: false
+
   Time:
     collapsed: false
   Tool Properties:

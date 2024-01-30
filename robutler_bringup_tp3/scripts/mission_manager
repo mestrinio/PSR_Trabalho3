@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 from datetime import datetime
 import rospy
 from functools import partial
@@ -143,9 +144,9 @@ def makeTextMarker(name, text, frame_id="base_link"):
     return int_marker, text_marker
 
 
-
 def deepCb(feedback):
     rospy.loginfo("The deep sub-menu has been found.")
+
 
 
 def updateMissionDescription(mission_name, mission_location, complete_message=None):
@@ -955,6 +956,7 @@ def searchForCoke(feedback, x, y, z, R, P, Y,location,goal_publisher,camera_list
     
     print('First, moving to ' + location)
     updateMissionDescription("Moving to the {} to check if the laptop is there".format(location), mission_location=location)
+
     p = Pose()
     p.position = Point(x=x, y=y, z=z)
     q = quaternion_from_euler(R, P, Y)  # From euler angles (rpy) to quaternion
@@ -968,6 +970,7 @@ def searchForCoke(feedback, x, y, z, R, P, Y,location,goal_publisher,camera_list
     goal_publisher.publish(ps)
 
     # TODO know when move is finished
+
     try:
         result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
     except:
@@ -1205,12 +1208,14 @@ def storytelling(feedback,goal_publisher):
     # TODO know when move is finished
     try:
         result_msg = rospy.wait_for_message('/move_base/result', MoveBaseActionResult, timeout=120)
+
     except:
         print('Timeout waiting for moveto')
         # TODO
         return
 
     print('move base completed goal with result ' + str(result_msg))
+
 
 
 
@@ -1961,6 +1966,7 @@ def racingMode(feedback, track_nmbr ,goal_publisher):
 def main():
     global server
     
+
     # -------------------------------
     # Initialization
     # -------------------------------
@@ -1970,6 +1976,7 @@ def main():
     goal_publisher = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=1)
 
     server = InteractiveMarkerServer("mission")
+
     print(server) 
 
     global h_first_entry, h_mode_last
@@ -2260,6 +2267,7 @@ def main():
  
     
     
+
     makeMenuMarker("marker1")
 
     menu_handler.apply(server, "marker1")

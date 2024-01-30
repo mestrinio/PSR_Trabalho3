@@ -6,6 +6,7 @@ from cv_bridge import CvBridge, CvBridgeError
 import cv2
 import numpy as np
 
+
 ####################################### This script is for individual use, not paired with mission_maneger ##########################################
 
 class ObjectDetectionNode:
@@ -114,4 +115,5 @@ def main():
        
 if __name__ == '__main__':
    main()
+
 

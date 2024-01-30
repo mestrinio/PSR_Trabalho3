@@ -17,7 +17,9 @@
       <geometry>
         <mesh filename="package://turtlebot3_description/meshes/bases/waffle_pi_base.stl" scale="0.001 0.001 0.001"/>
       </geometry>
+
       <material name="red"/>
+
     </visual>
 
     <collision>
@@ -49,7 +51,9 @@
       <geometry>
         <mesh filename="package://turtlebot3_description/meshes/wheels/left_tire.stl" scale="0.001 0.001 0.001"/>
       </geometry>
+
       <material name="yellow"/>
+
     </visual>
 
     <collision>
@@ -81,7 +85,9 @@
       <geometry>
         <mesh filename="package://turtlebot3_description/meshes/wheels/right_tire.stl" scale="0.001 0.001 0.001"/>
       </geometry>
+
       <material name="yellow"/>
+
     </visual>
 
     <collision>
@@ -166,7 +172,9 @@
       <geometry>
         <mesh filename="package://turtlebot3_description/meshes/sensors/lds.stl" scale="0.001 0.001 0.001"/>
       </geometry>
+
       <material name="grey"/>
+
     </visual>
 
     <collision>
@@ -216,6 +224,7 @@
 <!-- Minhas alterações a partir daqui -->
 
 
+
   <link name="antena">
     <visual>
       <geometry>
@@ -223,7 +232,9 @@
       </geometry>
       <origin xyz="0 0 0.122" rpy="0 0 0"/>   
       <!-- antes 0.122 -->
+
       <material name="brown"/>
+
     </visual>
   </link>
 
@@ -239,7 +250,9 @@
         <cylinder length="0.025" radius="0.05"/>
       </geometry>
       <origin xyz="0 0 0" rpy="0 0 0"/>   
+
       <material name="grey"/>
+
     </visual>
   </link>
 
@@ -344,13 +357,6 @@
     <child link="toptop_camera_rgb_optical_frame"/>
   </joint>
   <link name="toptop_camera_rgb_optical_frame"/>
-
-
-
-
-
-
-
 
 
 
